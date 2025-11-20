@@ -1,6 +1,6 @@
 import React, { useState, useEffect , useRef} from 'react';
 import logo from './assets/images/avf.png'
-  import jsPDF from "jspdf";
+import jsPDF from "jspdf";
 import { Layout, Card, Row, Col, Tag, Typography, Button, Space, Tooltip, Drawer } from 'antd';
 import {
   MailOutlined,
@@ -32,8 +32,28 @@ import {
   ArrowDownOutlined
 } from '@ant-design/icons';
 
+// Firebase imports
+import { initializeApp } from "firebase/app";
+import { getDatabase, ref, push, onValue, serverTimestamp } from "firebase/database";
+
 const { Content, Footer } = Layout;
 const { Title, Text, Paragraph } = Typography;
+
+// Firebase configuration
+const firebaseConfig = {
+  apiKey: "AIzaSyCq0UhsupmL5lzqxtW779C28wooUAdZfUs",
+  authDomain: "messaging-app-mern-49164.firebaseapp.com",
+  databaseURL: "https://messaging-app-mern-49164-default-rtdb.firebaseio.com",
+  projectId: "messaging-app-mern-49164",
+  storageBucket: "messaging-app-mern-49164.firebasestorage.app",
+  messagingSenderId: "1069295029107",
+  appId: "1:1069295029107:web:a47099821cbf97cd585306",
+  measurementId: "G-GY0W73BSR0"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const database = getDatabase(app);
 
 const styleSheet = `
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
@@ -517,28 +537,75 @@ export default function Portfolio() {
 
 
   const [messages, setMessages] = useState([]);
-const [currentMessage, setCurrentMessage] = useState("");
-const chatBodyRef = useRef(null);
+  const [currentMessage, setCurrentMessage] = useState("");
+  const chatBodyRef = useRef(null);
 
-const sendMessage = () => {
-  if (!currentMessage.trim()) return;
+  // Generate or retrieve a unique session ID for this visitor
+  const getSessionId = () => {
+    let sessionId = sessionStorage.getItem('chatSessionId');
+    if (!sessionId) {
+      sessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+      sessionStorage.setItem('chatSessionId', sessionId);
+    }
+    return sessionId;
+  };
 
-  setMessages(prev => [...prev, { sender: "user", text: currentMessage }]);
-  setCurrentMessage("");
-
-  // Optional auto-reply
-  setTimeout(() => {
-    setMessages(prev => [...prev, { sender: "bot", text: "Thanks! I’ll look it over and get back to you soon 🙂" }]);
-  }, 600);
-
-  // Auto-scroll
-  setTimeout(() => {
-    chatBodyRef.current?.scrollTo({
-      top: chatBodyRef.current.scrollHeight,
-      behavior: "smooth",
+  // Listen for messages from Firebase
+  useEffect(() => {
+    const sessionId = getSessionId();
+    const messagesRef = ref(database, `chats/${sessionId}/messages`);
+    
+    const unsubscribe = onValue(messagesRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        const messagesArray = Object.keys(data).map(key => ({
+          id: key,
+          ...data[key]
+        })).sort((a, b) => a.timestamp - b.timestamp);
+        setMessages(messagesArray);
+      } else {
+        setMessages([]);
+      }
     });
-  }, 100);
-};
+
+    return () => unsubscribe();
+  }, []);
+
+  // Auto-scroll when messages update
+  useEffect(() => {
+    setTimeout(() => {
+      chatBodyRef.current?.scrollTo({
+        top: chatBodyRef.current.scrollHeight,
+        behavior: "smooth",
+      });
+    }, 100);
+  }, [messages]);
+
+  const sendMessage = () => {
+    if (!currentMessage.trim()) return;
+
+    const sessionId = getSessionId();
+    const messagesRef = ref(database, `chats/${sessionId}/messages`);
+    
+    // Push user message to Firebase
+    push(messagesRef, {
+      sender: "user",
+      text: currentMessage,
+      timestamp: Date.now()
+    });
+
+    setCurrentMessage("");
+
+    // Optional: Send notification or auto-reply
+    // You can remove this if you want to reply manually from Firebase console or another app
+    setTimeout(() => {
+      push(messagesRef, {
+        sender: "bot",
+        text: "Thanks for your message! I'll get back to you soon 🙂",
+        timestamp: Date.now()
+      });
+    }, 1000);
+  };
 
 
   const info = {
@@ -2224,162 +2291,156 @@ const downloadResume = () => {
             </div>
 
             {/* Chat Body */}
-          {/* Chat Body */}
-<div
-  style={{
-    padding: "20px",
-    minHeight: "280px",
-    maxHeight: "350px",
-    overflowY: "auto",
-    background: "#f8fafc",
-  }}
-  ref={chatBodyRef}
->
-  {/* First default bot message (only before user writes) */}
-  {messages.length === 0 && (
-    <div
-      style={{
-        background: "#fff",
-        borderRadius: "12px",
-        padding: "16px",
-        boxShadow: "0 2px 8px rgba(0, 0, 0, 0.06)",
-        border: "1px solid #f1f5f9",
-        marginBottom: "12px",
-      }}
-    >
-      <Text style={{ fontSize: "14px", color: "#374151", lineHeight: "1.6" }}>
-        Hi there! I'm Sahjaan 👋 a software engineer specializing in healthcare technology. How can I help you today?
-      </Text>
+            <div
+              style={{
+                padding: "20px",
+                minHeight: "280px",
+                maxHeight: "350px",
+                overflowY: "auto",
+                background: "#f8fafc",
+              }}
+              ref={chatBodyRef}
+            >
+              {/* First default bot message (only before user writes) */}
+              {messages.length === 0 && (
+                <div
+                  style={{
+                    background: "#fff",
+                    borderRadius: "12px",
+                    padding: "16px",
+                    boxShadow: "0 2px 8px rgba(0, 0, 0, 0.06)",
+                    border: "1px solid #f1f5f9",
+                    marginBottom: "12px",
+                  }}
+                >
+                  <Text style={{ fontSize: "14px", color: "#374151", lineHeight: "1.6" }}>
+                    Hi there! I'm Sahjaan 👋 a software engineer specializing in healthcare technology. How can I help you today?
+                  </Text>
 
-      {/* Quick Buttons */}
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          gap: "8px",
-          marginTop: "16px",
-        }}
-      >
-        <Button
-          block
-          onClick={() =>
-            window.location.href = `mailto:${info.email}?subject=Project Inquiry`
-          }
-          style={{
-            border: "1px solid #3b82f6",
-            borderRadius: "8px",
-            color: "#3b82f6",
-            fontWeight: "500",
-            height: "40px",
-            background: "transparent",
-          }}
-        >
-          Discuss a project
-        </Button>
+                  {/* Quick Buttons */}
+                  <div
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: "8px",
+                      marginTop: "16px",
+                    }}
+                  >
+                    <Button
+                      block
+                      onClick={() =>
+                        window.location.href = `mailto:${info.email}?subject=Project Inquiry`
+                      }
+                      style={{
+                        border: "1px solid #3b82f6",
+                        borderRadius: "8px",
+                        color: "#3b82f6",
+                        fontWeight: "500",
+                        height: "40px",
+                        background: "transparent",
+                      }}
+                    >
+                      Discuss a project
+                    </Button>
 
-        <Button
-          block
-          onClick={openWhatsApp}
-          style={{
-            border: "1px solid #3b82f6",
-            borderRadius: "8px",
-            color: "#3b82f6",
-            fontWeight: "500",
-            height: "40px",
-            background: "transparent",
-          }}
-        >
-          Connect on WhatsApp
-        </Button>
+                    <Button
+                      block
+                      onClick={openWhatsApp}
+                      style={{
+                        border: "1px solid #3b82f6",
+                        borderRadius: "8px",
+                        color: "#3b82f6",
+                        fontWeight: "500",
+                        height: "40px",
+                        background: "transparent",
+                      }}
+                    >
+                      Connect on WhatsApp
+                    </Button>
 
-        <Button
-          block
-          onClick={downloadResume}
-          style={{
-            border: "1px solid #3b82f6",
-            borderRadius: "8px",
-            color: "#3b82f6",
-            fontWeight: "500",
-            height: "40px",
-            background: "transparent",
-          }}
-        >
-          View Resume
-        </Button>
-      </div>
-    </div>
-  )}
+                    <Button
+                      block
+                      onClick={downloadResume}
+                      style={{
+                        border: "1px solid #3b82f6",
+                        borderRadius: "8px",
+                        color: "#3b82f6",
+                        fontWeight: "500",
+                        height: "40px",
+                        background: "transparent",
+                      }}
+                    >
+                      View Resume
+                    </Button>
+                  </div>
+                </div>
+              )}
 
-  {/* Render messages */}
-  {messages.map((m, i) => (
-    <div
-      key={i}
-      style={{
-        display: "flex",
-        justifyContent: m.sender === "user" ? "flex-end" : "flex-start",
-        marginBottom: "12px",
-      }}
-    >
-      <div
-        style={{
-          padding: "12px 16px",
-          borderRadius: "12px",
-          maxWidth: "75%",
-          background: m.sender === "user" ? "#3b82f6" : "#fff",
-          color: m.sender === "user" ? "#fff" : "#374151",
-          boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
-        }}
-      >
-        {m.text}
-      </div>
-    </div>
-  ))}
-</div>
-
+              {/* Render messages from Firebase */}
+              {messages.map((m, i) => (
+                <div
+                  key={m.id || i}
+                  style={{
+                    display: "flex",
+                    justifyContent: m.sender === "user" ? "flex-end" : "flex-start",
+                    marginBottom: "12px",
+                  }}
+                >
+                  <div
+                    style={{
+                      padding: "12px 16px",
+                      borderRadius: "12px",
+                      maxWidth: "75%",
+                      background: m.sender === "user" ? "#3b82f6" : "#fff",
+                      color: m.sender === "user" ? "#fff" : "#374151",
+                      boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
+                    }}
+                  >
+                    {m.text}
+                  </div>
+                </div>
+              ))}
+            </div>
 
             {/* Footer */}
-          {/* Footer */}
-<div
-  style={{
-    padding: "16px 20px",
-    borderTop: "1px solid #f1f5f9",
-    background: "#fff",
-  }}
->
+            <div
+              style={{
+                padding: "16px 20px",
+                borderTop: "1px solid #f1f5f9",
+                background: "#fff",
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                <input
+                  value={currentMessage}
+                  onChange={(e) => setCurrentMessage(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && sendMessage()}
+                  placeholder="Write a message..."
+                  style={{
+                    flex: 1,
+                    borderRadius: "12px",
+                    border: "1px solid #e2e8f0",
+                    padding: "12px",
+                    fontSize: "14px",
+                    outline: "none",
+                  }}
+                />
 
-
-  <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-    <input
-      value={currentMessage}
-      onChange={(e) => setCurrentMessage(e.target.value)}
-      onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-      placeholder="Write a message..."
-      style={{
-        flex: 1,
-        borderRadius: "12px",
-        border: "1px solid #e2e8f0",
-        padding: "12px",
-        fontSize: "14px",
-        outline: "none",
-      }}
-    />
-
-    <Button
-      shape="circle"
-      onClick={sendMessage}
-      icon={<ArrowRightOutlined style={{ fontSize: "14px", transform: "rotate(-45deg)" }} />}
-      style={{
-        width: "44px",
-        height: "44px",
-        background: "linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)",
-        border: "none",
-        color: "#fff",
-        boxShadow: "0 4px 12px rgba(59, 130, 246, 0.4)",
-      }}
-    />
-  </div>
-</div>
-
+                <Button
+                  shape="circle"
+                  onClick={sendMessage}
+                  icon={<ArrowRightOutlined style={{ fontSize: "14px", transform: "rotate(-45deg)" }} />}
+                  style={{
+                    width: "44px",
+                    height: "44px",
+                    background: "linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)",
+                    border: "none",
+                    color: "#fff",
+                    boxShadow: "0 4px 12px rgba(59, 130, 246, 0.4)",
+                  }}
+                />
+              </div>
+            </div>
           </div>
         )}
 
