@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect , useRef} from 'react';
 import logo from './assets/images/avf.png'
   import jsPDF from "jspdf";
 import { Layout, Card, Row, Col, Tag, Typography, Button, Space, Tooltip, Drawer } from 'antd';
@@ -515,6 +515,32 @@ export default function Portfolio() {
     document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
   };
 
+
+  const [messages, setMessages] = useState([]);
+const [currentMessage, setCurrentMessage] = useState("");
+const chatBodyRef = useRef(null);
+
+const sendMessage = () => {
+  if (!currentMessage.trim()) return;
+
+  setMessages(prev => [...prev, { sender: "user", text: currentMessage }]);
+  setCurrentMessage("");
+
+  // Optional auto-reply
+  setTimeout(() => {
+    setMessages(prev => [...prev, { sender: "bot", text: "Thanks! I’ll look it over and get back to you soon 🙂" }]);
+  }, 600);
+
+  // Auto-scroll
+  setTimeout(() => {
+    chatBodyRef.current?.scrollTo({
+      top: chatBodyRef.current.scrollHeight,
+      behavior: "smooth",
+    });
+  }, 100);
+};
+
+
   const info = {
     name: "Md Sahjaan",
     role: "Full-Stack Software Engineer",
@@ -624,7 +650,7 @@ const downloadResume = () => {
   doc.setFont("Helvetica", "bold");
   doc.setFontSize(13);
   doc.text(
-    "Software Engineer — Oodles Technologies (OodlesAI Healthcare Platform)",
+    "Software Engineer —   Oodles AI ( Healthcare Platform)",
     margin,
     y
   );
@@ -664,9 +690,9 @@ const downloadResume = () => {
 
   const stats = [
     { value: '2+', label: 'Years Exp', icon: <StarOutlined /> },
-    { value: '50+', label: 'Practices', icon: <HeartOutlined /> },
-    { value: '10K+', label: 'Interactions', icon: <MessageOutlined /> },
-    { value: '99.9%', label: 'Uptime', icon: <ThunderboltOutlined /> }
+    { value: '12+', label: 'Practices', icon: <HeartOutlined /> },
+    { value: '53+', label: 'Interactions', icon: <MessageOutlined /> },
+    { value: '73.9%', label: 'Uptime', icon: <ThunderboltOutlined /> }
   ];
 
   const skills = [
@@ -723,8 +749,8 @@ const downloadResume = () => {
   const experience = [
     {
       title: 'Software Engineer',
-      company: 'Oodles Technologies',
-      project: 'OodlesAI Healthcare Platform',
+      company: '  Oodles AI',
+      project: 'Oodles AI Healthcare Platform',
       location: 'Houston, TX, USA',
       period: 'January 2023 – Present',
       duration: '2+ Years',
@@ -2198,116 +2224,162 @@ const downloadResume = () => {
             </div>
 
             {/* Chat Body */}
-            <div style={{ 
-              padding: '20px',
-              minHeight: '280px',
-              maxHeight: '350px',
-              overflowY: 'auto',
-              background: '#f8fafc'
-            }}>
-              {/* Bot Message */}
-              <div style={{
-                background: '#fff',
-                borderRadius: '12px',
-                padding: '16px',
-                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)',
-                border: '1px solid #f1f5f9'
-              }}>
-                <Text style={{ fontSize: '14px', color: '#374151', lineHeight: '1.6' }}>
-                  Hi there! I'm Sahjaan 👋 a software engineer specializing in healthcare technology. How can I help you today?
-                </Text>
-                
-                {/* Quick Reply Buttons */}
-                <div style={{ 
-                  display: 'flex', 
-                  flexDirection: 'column', 
-                  gap: '8px',
-                  marginTop: '16px'
-                }}>
-                  <Button
-                    block
-                    onClick={() => window.location.href = `mailto:${info.email}?subject=Project Inquiry`}
-                    style={{
-                      border: '1px solid #3b82f6',
-                      borderRadius: '8px',
-                      color: '#3b82f6',
-                      fontWeight: '500',
-                      height: '40px',
-                      background: 'transparent'
-                    }}
-                  >
-                    Discuss a project
-                  </Button>
-                  <Button
-                    block
-                    onClick={openWhatsApp}
-                    style={{
-                      border: '1px solid #3b82f6',
-                      borderRadius: '8px',
-                      color: '#3b82f6',
-                      fontWeight: '500',
-                      height: '40px',
-                      background: 'transparent'
-                    }}
-                  >
-                    Connect on WhatsApp
-                  </Button>
-                  <Button
-                    block
-                    onClick={downloadResume}
-                    style={{
-                      border: '1px solid #3b82f6',
-                      borderRadius: '8px',
-                      color: '#3b82f6',
-                      fontWeight: '500',
-                      height: '40px',
-                      background: 'transparent'
-                    }}
-                  >
-                    View Resume
-                  </Button>
-                </div>
-              </div>
-            </div>
+          {/* Chat Body */}
+<div
+  style={{
+    padding: "20px",
+    minHeight: "280px",
+    maxHeight: "350px",
+    overflowY: "auto",
+    background: "#f8fafc",
+  }}
+  ref={chatBodyRef}
+>
+  {/* First default bot message (only before user writes) */}
+  {messages.length === 0 && (
+    <div
+      style={{
+        background: "#fff",
+        borderRadius: "12px",
+        padding: "16px",
+        boxShadow: "0 2px 8px rgba(0, 0, 0, 0.06)",
+        border: "1px solid #f1f5f9",
+        marginBottom: "12px",
+      }}
+    >
+      <Text style={{ fontSize: "14px", color: "#374151", lineHeight: "1.6" }}>
+        Hi there! I'm Sahjaan 👋 a software engineer specializing in healthcare technology. How can I help you today?
+      </Text>
+
+      {/* Quick Buttons */}
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: "8px",
+          marginTop: "16px",
+        }}
+      >
+        <Button
+          block
+          onClick={() =>
+            window.location.href = `mailto:${info.email}?subject=Project Inquiry`
+          }
+          style={{
+            border: "1px solid #3b82f6",
+            borderRadius: "8px",
+            color: "#3b82f6",
+            fontWeight: "500",
+            height: "40px",
+            background: "transparent",
+          }}
+        >
+          Discuss a project
+        </Button>
+
+        <Button
+          block
+          onClick={openWhatsApp}
+          style={{
+            border: "1px solid #3b82f6",
+            borderRadius: "8px",
+            color: "#3b82f6",
+            fontWeight: "500",
+            height: "40px",
+            background: "transparent",
+          }}
+        >
+          Connect on WhatsApp
+        </Button>
+
+        <Button
+          block
+          onClick={downloadResume}
+          style={{
+            border: "1px solid #3b82f6",
+            borderRadius: "8px",
+            color: "#3b82f6",
+            fontWeight: "500",
+            height: "40px",
+            background: "transparent",
+          }}
+        >
+          View Resume
+        </Button>
+      </div>
+    </div>
+  )}
+
+  {/* Render messages */}
+  {messages.map((m, i) => (
+    <div
+      key={i}
+      style={{
+        display: "flex",
+        justifyContent: m.sender === "user" ? "flex-end" : "flex-start",
+        marginBottom: "12px",
+      }}
+    >
+      <div
+        style={{
+          padding: "12px 16px",
+          borderRadius: "12px",
+          maxWidth: "75%",
+          background: m.sender === "user" ? "#3b82f6" : "#fff",
+          color: m.sender === "user" ? "#fff" : "#374151",
+          boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
+        }}
+      >
+        {m.text}
+      </div>
+    </div>
+  ))}
+</div>
+
 
             {/* Footer */}
-            <div style={{
-              padding: '16px 20px',
-              borderTop: '1px solid #f1f5f9',
-              background: '#fff'
-            }}>
-              <Text style={{ 
-                fontSize: '12px', 
-                color: '#94a3b8',
-                display: 'block',
-                marginBottom: '12px'
-              }}>
-                Hit the buttons to respond
-              </Text>
-              <div style={{ 
-                display: 'flex', 
-                alignItems: 'center', 
-                justifyContent: 'space-between'
-              }}>
-                <Space size={12}>
-                  <RobotOutlined style={{ fontSize: '18px', color: '#94a3b8' }} />
-                  <span style={{ fontSize: '16px', color: '#94a3b8' }}>📎</span>
-                  <span style={{ fontSize: '16px', color: '#94a3b8' }}>😊</span>
-                </Space>
-                <Button
-                  shape="circle"
-                  icon={<ArrowRightOutlined style={{ fontSize: '14px', transform: 'rotate(-45deg)' }} />}
-                  style={{
-                    width: '44px',
-                    height: '44px',
-                    background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
-                    border: 'none',
-                    color: '#fff',
-                    boxShadow: '0 4px 12px rgba(59, 130, 246, 0.4)'
-                  }}
-                />
-              </div>
-            </div>
+          {/* Footer */}
+<div
+  style={{
+    padding: "16px 20px",
+    borderTop: "1px solid #f1f5f9",
+    background: "#fff",
+  }}
+>
+
+
+  <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+    <input
+      value={currentMessage}
+      onChange={(e) => setCurrentMessage(e.target.value)}
+      onKeyDown={(e) => e.key === "Enter" && sendMessage()}
+      placeholder="Write a message..."
+      style={{
+        flex: 1,
+        borderRadius: "12px",
+        border: "1px solid #e2e8f0",
+        padding: "12px",
+        fontSize: "14px",
+        outline: "none",
+      }}
+    />
+
+    <Button
+      shape="circle"
+      onClick={sendMessage}
+      icon={<ArrowRightOutlined style={{ fontSize: "14px", transform: "rotate(-45deg)" }} />}
+      style={{
+        width: "44px",
+        height: "44px",
+        background: "linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)",
+        border: "none",
+        color: "#fff",
+        boxShadow: "0 4px 12px rgba(59, 130, 246, 0.4)",
+      }}
+    />
+  </div>
+</div>
+
           </div>
         )}
 
