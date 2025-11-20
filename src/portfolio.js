@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-
+import logo from './assets/images/avf.png'
+  import jsPDF from "jspdf";
 import { Layout, Card, Row, Col, Tag, Typography, Button, Space, Tooltip, Drawer } from 'antd';
 import {
   MailOutlined,
@@ -521,59 +522,145 @@ export default function Portfolio() {
     phone: "+91 9262909338",
     location: "Purnea, Bihar, India",
     whatsapp: "919262909338",
-    website: "sahjan.com",
-    photo: "https://i.sstatic.net/l60Hf.png"
+    website: "https://portfolio-pi-ecru-48.vercel.app/",
+    photo: logo
   };
 
   const openWhatsApp = () => {
     window.open(`https://wa.me/${info.whatsapp}?text=${encodeURIComponent("Hi Md Sahjaan, I'd like to discuss a project opportunity.")}`, '_blank');
   };
 
-  const downloadResume = () => {
-    const content = `MD SAHJAAN
-Full-Stack Software Engineer
+ 
 
-${info.email} | ${info.phone} | ${info.location}
-sahjan.com
+const downloadResume = () => {
+  const doc = new jsPDF({
+    unit: "pt",
+    format: "a4",
+  });
 
-— PROFESSIONAL SUMMARY —
-Software Engineer with expertise in healthcare technology and AI-driven solutions. Proven track record in developing HIPAA-compliant SaaS platforms, implementing conversational AI agents, and building full-stack web applications. Specialized in patient engagement systems, clinical workflow automation, and medical records management.
+  let y = 40;
+  const margin = 40;
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const maxWidth = pageWidth - 2 * margin;
+  const lineGap = 16;
 
-— TECHNICAL SKILLS —
-Languages: JavaScript, TypeScript, Python, Java, SQL, HTML5, CSS3
-Frontend: React.js, Next.js, Redux, Tailwind CSS, Responsive Design
-Backend: Node.js, Express.js, Spring Boot, RESTful APIs, Microservices
-Database: PostgreSQL, MongoDB, MySQL
-AI/ML: OpenAI, NLP, Conversational AI, Chatbot Development
-Cloud/DevOps: AWS, Docker, Git, CI/CD, Kubernetes
-Healthcare: EHR/EMR Systems, HIPAA Compliance, HL7/FHIR, Telehealth
-
-— PROFESSIONAL EXPERIENCE —
-Software Engineer | Oodles Technologies – OodlesAI Healthcare Platform
-Houston, TX, USA | January 2023 – Present | 2+ Years
-
-• Developed comprehensive healthcare SaaS platform serving 50+ dental practices
-• Built multi-channel AI agent system automating patient communications
-• Reduced administrative workload by 70%
-• Engineered HIPAA-compliant medical records system
-• Decreased patient onboarding time by 60%
-• Implemented 8+ clinical assessment modules
-• Achieved 99.9% platform uptime
-
-— EDUCATION —
-B.Tech in Computer Science | VVIT Purnia | 2023 | 8.0 CGPA
-
-— CERTIFICATIONS —
-• HIPAA Compliance Training
-• AWS Certified Cloud Practitioner
-• Full Stack Developer Training
-• React & DSA Certification`;
-    const blob = new Blob([content], { type: 'text/plain' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = 'Md_Sahjaan_Resume.txt';
-    link.click();
+  const addHeader = (text) => {
+    doc.setFont("Helvetica", "bold");
+    doc.setFontSize(15);
+    doc.setTextColor(30, 30, 30);
+    doc.text(text.toUpperCase(), margin, y);
+    y += 22;
   };
+
+  const addText = (text) => {
+    doc.setFont("Helvetica", "normal");
+    doc.setFontSize(11);
+    const lines = doc.splitTextToSize(text, maxWidth);
+    doc.text(lines, margin, y);
+    y += lines.length * lineGap;
+  };
+
+  const addBullet = (items) => {
+    doc.setFont("Helvetica", "normal");
+    doc.setFontSize(11);
+    items.forEach((item) => {
+      const lines = doc.splitTextToSize(item, maxWidth - 20);
+      doc.text("•", margin, y);
+      doc.text(lines, margin + 15, y);
+      y += lines.length * lineGap;
+    });
+    y += 5;
+  };
+
+  // --- Header (Name + Title) ---
+  doc.setFont("Helvetica", "bold");
+  doc.setFontSize(22);
+  doc.text("MD SAHJAAN", margin, y);
+  y += 28;
+
+  doc.setFont("Helvetica", "normal");
+  doc.setFontSize(12);
+  doc.text("Full-Stack Software Engineer", margin, y);
+  y += 22;
+
+  // --- Contact + Links ---
+  doc.setFont("Helvetica", "normal");
+  doc.setFontSize(11);
+  addText(`${info.email} | ${info.phone} | ${info.location}`);
+
+  // Adding LinkedIn link
+  const linkedInUrl = "https://www.linkedin.com/in/er-md-sahjaan-4a33b1247";
+  doc.setTextColor(33, 102, 197); // a blue color
+  doc.textWithLink("LinkedIn", margin, y, { url: linkedInUrl });
+  y += lineGap;
+
+  // Adding GitHub link
+  const githubUrl = "https://github.com/ErSahjaan";
+  doc.textWithLink("GitHub", margin, y, { url: githubUrl });
+  y += lineGap;
+
+  // Reset text color to black
+  doc.setTextColor(0, 0, 0);
+  y += 10;
+
+  // --- Professional Summary ---
+  addHeader("Professional Summary");
+  addText(
+    "Software Engineer specializing in healthcare SaaS, AI-driven automation, and HIPAA-compliant platforms. Experienced in building scalable full-stack applications, clinical workflow systems, and high-uptime medical records solutions. Strong focus on conversational AI, patient engagement automation, and secure cloud deployments."
+  );
+
+  // --- Technical Skills ---
+  addHeader("Technical Skills");
+  addText("Languages: JavaScript, TypeScript, Python, Java, SQL, HTML5, CSS3");
+  addText("Frontend: React.js, Next.js, Redux, Tailwind CSS, Responsive Design");
+  addText("Backend: Node.js, Express.js, Spring Boot, RESTful APIs, Microservices");
+  addText("Databases: PostgreSQL, MongoDB, MySQL");
+  addText("AI/ML: OpenAI, NLP, Conversational AI, Chatbot Development");
+  addText("Cloud/DevOps: AWS, Docker, Git, CI/CD, Kubernetes");
+  addText("Healthcare: EHR/EMR Systems, HIPAA Compliance, HL7/FHIR, Telehealth");
+
+  // --- Professional Experience ---
+  addHeader("Professional Experience");
+  doc.setFont("Helvetica", "bold");
+  doc.setFontSize(13);
+  doc.text(
+    "Software Engineer — Oodles Technologies (OodlesAI Healthcare Platform)",
+    margin,
+    y
+  );
+  y += 18;
+
+  doc.setFont("Helvetica", "normal");
+  doc.setFontSize(11);
+  addText("Houston, TX • Jan 2023 – Present (2+ Years)");
+
+  addBullet([
+    "Developed healthcare SaaS platform serving 50+ dental practices.",
+    "Built multi-channel AI agent system automating patient messaging & reminders.",
+    "Reduced administrative workload by 70% through automated workflows.",
+    "Engineered HIPAA-compliant medical records & patient data system.",
+    "Decreased patient onboarding time by 60% using automated intake modules.",
+    "Developed 8+ clinical assessment modules with real-time validation.",
+    "Contributed to 99.9% system uptime through optimized backend processes.",
+  ]);
+
+  // --- Education ---
+  addHeader("Education");
+  addText("B.Tech in Computer Science | VVIT Purnia | 2023 | 8.0 CGPA");
+
+  // --- Certifications ---
+  addHeader("Certifications");
+  addBullet([
+    "HIPAA Compliance Training",
+    "AWS Certified Cloud Practitioner",
+    "Full Stack Developer Training",
+    "React & DSA Certification",
+  ]);
+
+  // --- Save PDF ---
+  doc.save("Md_Sahjaan_Resume_With_Links.pdf");
+};
+
 
   const stats = [
     { value: '2+', label: 'Years Exp', icon: <StarOutlined /> },
@@ -945,34 +1032,55 @@ B.Tech in Computer Science | VVIT Purnia | 2023 | 8.0 CGPA
                     </Space>
                     
                     {/* Social Icons */}
-                    <Space size={12} style={{ animation: 'fadeInLeft 0.8s ease 0.6s forwards', opacity: 0 }}>
-                      {[
-                        { icon: <GithubOutlined />, label: 'GitHub' },
-                        { icon: <LinkedinOutlined />, label: 'LinkedIn' },
-                        { icon: <MailOutlined />, label: 'Email' }
-                      ].map((s, i) => (
-                        <Tooltip title={s.label} key={i}>
-                          <div
-                            className="social-icon"
-                            style={{
-                              width: '48px',
-                              height: '48px',
-                              borderRadius: '12px',
-                              background: '#fff',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              cursor: 'pointer',
-                              fontSize: '18px',
-                              color: '#64748b',
-                              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)'
-                            }}
-                          >
-                            {s.icon}
-                          </div>
-                        </Tooltip>
-                      ))}
-                    </Space>
+                   <Space
+  size={12}
+  style={{ animation: 'fadeInLeft 0.8s ease 0.6s forwards', opacity: 0 }}
+>
+  {[
+    {
+      icon: <GithubOutlined />,
+      label: 'GitHub',
+      onClick: () => window.open('https://github.com/ErSahjaan', '_blank')
+    },
+    {
+      icon: <LinkedinOutlined />,
+      label: 'LinkedIn',
+      onClick: () =>
+        window.open(
+          'https://www.linkedin.com/in/er-md-sahjaan-4a33b1247?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app',
+          '_blank'
+        )
+    },
+    {
+      icon: <MailOutlined />,
+      label: 'Email',
+      onClick: () => (window.location.href = 'mailto:sahjan11957@gmail.com')
+    }
+  ].map((s, i) => (
+    <Tooltip title={s.label} key={i}>
+      <div
+        className="social-icon"
+        onClick={s.onClick}
+        style={{
+          width: '48px',
+          height: '48px',
+          borderRadius: '12px',
+          background: '#fff',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          cursor: 'pointer',
+          fontSize: '18px',
+          color: '#64748b',
+          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)'
+        }}
+      >
+        {s.icon}
+      </div>
+    </Tooltip>
+  ))}
+</Space>
+
                   </div>
                 </Col>
                 
