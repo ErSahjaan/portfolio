@@ -1,7 +1,10 @@
 import React, { useState, useEffect , useRef} from 'react';
 import logo from './assets/images/avf.png'
 import jsPDF from "jspdf";
-import { Layout, Card, Row, Col, Tag, Typography, Button, Space, Tooltip, Drawer } from 'antd';
+import { useNavigate } from 'react-router-dom';
+import { ReloadOutlined } from '@ant-design/icons';
+
+import { Layout, Card, Row, Col, Tag, Typography, Button, Space, Tooltip, Drawer, notification } from 'antd';
 import {
   MailOutlined,
   PhoneOutlined,
@@ -539,7 +542,7 @@ export default function Portfolio() {
   const [messages, setMessages] = useState([]);
   const [currentMessage, setCurrentMessage] = useState("");
   const chatBodyRef = useRef(null);
-
+const navigate = useNavigate();
   // Generate or retrieve a unique session ID for this visitor
   const getSessionId = () => {
     let sessionId = sessionStorage.getItem('chatSessionId');
@@ -549,7 +552,9 @@ export default function Portfolio() {
     }
     return sessionId;
   };
-
+const goToUpdatedCode = () => {
+  navigate('/updated-portfolio');
+};
   // Listen for messages from Firebase
   useEffect(() => {
     const sessionId = getSessionId();
@@ -625,135 +630,356 @@ export default function Portfolio() {
 
  
 
+// const downloadResume = () => {
+//   const doc = new jsPDF({
+//     unit: "pt",
+//     format: "a4",
+//   });
+
+//   let y = 40;
+//   const margin = 40;
+//   const pageWidth = doc.internal.pageSize.getWidth();
+//   const maxWidth = pageWidth - 2 * margin;
+//   const lineGap = 16;
+
+//   const addHeader = (text) => {
+//     doc.setFont("Helvetica", "bold");
+//     doc.setFontSize(15);
+//     doc.setTextColor(30, 30, 30);
+//     doc.text(text.toUpperCase(), margin, y);
+//     y += 22;
+//   };
+
+//   const addText = (text) => {
+//     doc.setFont("Helvetica", "normal");
+//     doc.setFontSize(11);
+//     const lines = doc.splitTextToSize(text, maxWidth);
+//     doc.text(lines, margin, y);
+//     y += lines.length * lineGap;
+//   };
+
+//   const addBullet = (items) => {
+//     doc.setFont("Helvetica", "normal");
+//     doc.setFontSize(11);
+//     items.forEach((item) => {
+//       const lines = doc.splitTextToSize(item, maxWidth - 20);
+//       doc.text("•", margin, y);
+//       doc.text(lines, margin + 15, y);
+//       y += lines.length * lineGap;
+//     });
+//     y += 5;
+//   };
+
+//   // --- Header (Name + Title) ---
+//   doc.setFont("Helvetica", "bold");
+//   doc.setFontSize(22);
+//   doc.text("MD SAHJAAN", margin, y);
+//   y += 28;
+
+//   doc.setFont("Helvetica", "normal");
+//   doc.setFontSize(12);
+//   doc.text("Full-Stack Software Engineer", margin, y);
+//   y += 22;
+
+//   // --- Contact + Links ---
+//   doc.setFont("Helvetica", "normal");
+//   doc.setFontSize(11);
+//   addText(`${info.email} | ${info.phone} | ${info.location}`);
+
+//   // Adding LinkedIn link
+//   const linkedInUrl = "https://www.linkedin.com/in/er-md-sahjaan-4a33b1247";
+//   doc.setTextColor(33, 102, 197); // a blue color
+//   doc.textWithLink("LinkedIn", margin, y, { url: linkedInUrl });
+//   y += lineGap;
+
+//   // Adding GitHub link
+//   const githubUrl = "https://github.com/ErSahjaan";
+//   doc.textWithLink("GitHub", margin, y, { url: githubUrl });
+//   y += lineGap;
+
+//   // Reset text color to black
+//   doc.setTextColor(0, 0, 0);
+//   y += 10;
+
+//   // --- Professional Summary ---
+//   addHeader("Professional Summary");
+//   addText(
+//     "Software Engineer specializing in healthcare SaaS, AI-driven automation, and HIPAA-compliant platforms. Experienced in building scalable full-stack applications, clinical workflow systems, and high-uptime medical records solutions. Strong focus on conversational AI, patient engagement automation, and secure cloud deployments."
+//   );
+
+//   // --- Technical Skills ---
+//   addHeader("Technical Skills");
+//   addText("Languages: JavaScript, TypeScript, Python, Java, SQL, HTML5, CSS3");
+//   addText("Frontend: React.js, Next.js, Redux, Tailwind CSS, Responsive Design");
+//   addText("Backend: Node.js, Express.js, Spring Boot, RESTful APIs, Microservices");
+//   addText("Databases: PostgreSQL, MongoDB, MySQL");
+//   addText("AI/ML: OpenAI, NLP, Conversational AI, Chatbot Development");
+//   addText("Cloud/DevOps: AWS, Docker, Git, CI/CD, Kubernetes");
+//   addText("Healthcare: EHR/EMR Systems, HIPAA Compliance, HL7/FHIR, Telehealth");
+
+//   // --- Professional Experience ---
+//   addHeader("Professional Experience");
+//   doc.setFont("Helvetica", "bold");
+//   doc.setFontSize(13);
+//   doc.text(
+//     "Software Engineer —   Oodles AI ( Healthcare Platform)",
+//     margin,
+//     y
+//   );
+//   y += 18;
+
+//   doc.setFont("Helvetica", "normal");
+//   doc.setFontSize(11);
+//   addText("Houston, TX • Jan 2023 – Present (2+ Years)");
+
+//   addBullet([
+//     "Developed healthcare SaaS platform serving 50+ dental practices.",
+//     "Built multi-channel AI agent system automating patient messaging & reminders.",
+//     "Reduced administrative workload by 70% through automated workflows.",
+//     "Engineered HIPAA-compliant medical records & patient data system.",
+//     "Decreased patient onboarding time by 60% using automated intake modules.",
+//     "Developed 8+ clinical assessment modules with real-time validation.",
+//     "Contributed to 99.9% system uptime through optimized backend processes.",
+//   ]);
+
+//   // --- Education ---
+//   addHeader("Education");
+//   addText("B.Tech in Computer Science | VVIT Purnia | 2023 | 8.0 CGPA");
+
+//   // --- Certifications ---
+//   addHeader("Certifications");
+//   addBullet([
+//     "HIPAA Compliance Training",
+//     "AWS Certified Cloud Practitioner",
+//     "Full Stack Developer Training",
+//     "React & DSA Certification",
+//   ]);
+
+//   // --- Save PDF ---
+//   doc.save("Md_Sahjaan_Resume_With_Links.pdf");
+// };
 const downloadResume = () => {
   const doc = new jsPDF({
     unit: "pt",
     format: "a4",
   });
 
-  let y = 40;
-  const margin = 40;
+  let y = 50;
+  const margin = 50;
   const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
   const maxWidth = pageWidth - 2 * margin;
-  const lineGap = 16;
+  const lineHeight = 14;
 
-  const addHeader = (text) => {
-    doc.setFont("Helvetica", "bold");
-    doc.setFontSize(15);
-    doc.setTextColor(30, 30, 30);
-    doc.text(text.toUpperCase(), margin, y);
-    y += 22;
+  // Color scheme
+  const primaryColor = [31, 78, 121]; // Professional blue
+  const textColor = [40, 40, 40]; // Dark gray
+  const lightGray = [100, 100, 100];
+
+  // Check if new page is needed
+  const checkPageBreak = (requiredSpace) => {
+    if (y + requiredSpace > pageHeight - margin) {
+      doc.addPage();
+      y = margin;
+    }
   };
 
-  const addText = (text) => {
-    doc.setFont("Helvetica", "normal");
-    doc.setFontSize(11);
+  // Add section header with underline
+  const addSectionHeader = (text) => {
+    checkPageBreak(30);
+    doc.setFont("Helvetica", "bold");
+    doc.setFontSize(13);
+    doc.setTextColor(...primaryColor);
+    doc.text(text.toUpperCase(), margin, y);
+    
+    // Add underline
+    const textWidth = doc.getTextWidth(text.toUpperCase());
+    doc.setDrawColor(...primaryColor);
+    doc.setLineWidth(1.5);
+    doc.line(margin, y + 3, margin + textWidth, y + 3);
+    
+    y += 20;
+    doc.setTextColor(...textColor);
+  };
+
+  // Add regular text
+  const addText = (text, bold = false, fontSize = 10) => {
+    checkPageBreak(lineHeight * 2);
+    doc.setFont("Helvetica", bold ? "bold" : "normal");
+    doc.setFontSize(fontSize);
+    doc.setTextColor(...textColor);
+    
     const lines = doc.splitTextToSize(text, maxWidth);
     doc.text(lines, margin, y);
-    y += lines.length * lineGap;
+    y += lines.length * lineHeight;
   };
 
-  const addBullet = (items) => {
+  // Add bullet points
+  const addBulletPoints = (items) => {
     doc.setFont("Helvetica", "normal");
-    doc.setFontSize(11);
+    doc.setFontSize(10);
+    doc.setTextColor(...textColor);
+    
     items.forEach((item) => {
+      checkPageBreak(lineHeight * 3);
+      const bulletX = margin + 5;
+      const textX = margin + 20;
+      
+      // Add bullet
+      doc.circle(bulletX, y - 3, 1.5, "F");
+      
+      // Add text
       const lines = doc.splitTextToSize(item, maxWidth - 20);
-      doc.text("•", margin, y);
-      doc.text(lines, margin + 15, y);
-      y += lines.length * lineGap;
+      doc.text(lines, textX, y);
+      y += lines.length * lineHeight;
     });
-    y += 5;
+    y += 8;
   };
 
-  // --- Header (Name + Title) ---
+  // Add job title with company
+  const addJobTitle = (title, company, location, dates) => {
+    checkPageBreak(35);
+    doc.setFont("Helvetica", "bold");
+    doc.setFontSize(11);
+    doc.setTextColor(...textColor);
+    doc.text(title, margin, y);
+    y += 14;
+    
+    doc.setFont("Helvetica", "italic");
+    doc.setFontSize(10);
+    doc.setTextColor(...lightGray);
+    doc.text(`${company} | ${location}`, margin, y);
+    y += 12;
+    
+    doc.setFont("Helvetica", "normal");
+    doc.text(dates, margin, y);
+    y += 16;
+  };
+
+  // Add clickable link
+  const addLink = (text, url) => {
+    checkPageBreak(lineHeight);
+    doc.setFont("Helvetica", "normal");
+    doc.setFontSize(10);
+    doc.setTextColor(33, 102, 197);
+    doc.textWithLink(text, margin, y, { url: url });
+    y += lineHeight;
+  };
+
+  // ========== HEADER SECTION ==========
   doc.setFont("Helvetica", "bold");
-  doc.setFontSize(22);
+  doc.setFontSize(26);
+  doc.setTextColor(...primaryColor);
   doc.text("MD SAHJAAN", margin, y);
-  y += 28;
+  y += 24;
 
   doc.setFont("Helvetica", "normal");
   doc.setFontSize(12);
+  doc.setTextColor(...lightGray);
   doc.text("Full-Stack Software Engineer", margin, y);
-  y += 22;
+  y += 20;
 
-  // --- Contact + Links ---
+  // Contact information
   doc.setFont("Helvetica", "normal");
-  doc.setFontSize(11);
+  doc.setFontSize(10);
+  doc.setTextColor(...textColor);
   addText(`${info.email} | ${info.phone} | ${info.location}`);
+  
+  addLink("linkedin.com/in/er-md-sahjaan", "https://www.linkedin.com/in/er-md-sahjaan-4a33b1247");
+  addLink("github.com/ErSahjaan", "https://github.com/ErSahjaan");
+  
+  y += 15;
 
-  // Adding LinkedIn link
-  const linkedInUrl = "https://www.linkedin.com/in/er-md-sahjaan-4a33b1247";
-  doc.setTextColor(33, 102, 197); // a blue color
-  doc.textWithLink("LinkedIn", margin, y, { url: linkedInUrl });
-  y += lineGap;
-
-  // Adding GitHub link
-  const githubUrl = "https://github.com/ErSahjaan";
-  doc.textWithLink("GitHub", margin, y, { url: githubUrl });
-  y += lineGap;
-
-  // Reset text color to black
-  doc.setTextColor(0, 0, 0);
-  y += 10;
-
-  // --- Professional Summary ---
-  addHeader("Professional Summary");
+  // ========== PROFESSIONAL SUMMARY ==========
+  addSectionHeader("Professional Summary");
   addText(
     "Software Engineer specializing in healthcare SaaS, AI-driven automation, and HIPAA-compliant platforms. Experienced in building scalable full-stack applications, clinical workflow systems, and high-uptime medical records solutions. Strong focus on conversational AI, patient engagement automation, and secure cloud deployments."
   );
+  y += 12;
 
-  // --- Technical Skills ---
-  addHeader("Technical Skills");
-  addText("Languages: JavaScript, TypeScript, Python, Java, SQL, HTML5, CSS3");
-  addText("Frontend: React.js, Next.js, Redux, Tailwind CSS, Responsive Design");
-  addText("Backend: Node.js, Express.js, Spring Boot, RESTful APIs, Microservices");
-  addText("Databases: PostgreSQL, MongoDB, MySQL");
-  addText("AI/ML: OpenAI, NLP, Conversational AI, Chatbot Development");
-  addText("Cloud/DevOps: AWS, Docker, Git, CI/CD, Kubernetes");
-  addText("Healthcare: EHR/EMR Systems, HIPAA Compliance, HL7/FHIR, Telehealth");
+  // ========== TECHNICAL SKILLS ==========
+  addSectionHeader("Technical Skills");
+  
+  const skills = [
+    { category: "Languages", items: "JavaScript, TypeScript, Python, Java, SQL, HTML5, CSS3" },
+    { category: "Frontend", items: "React.js, Next.js, Redux, Tailwind CSS, Responsive Design" },
+    { category: "Backend", items: "Node.js, Express.js, Spring Boot, RESTful APIs, Microservices" },
+    { category: "Databases", items: "PostgreSQL, MongoDB, MySQL" },
+    { category: "AI/ML", items: "OpenAI, NLP, Conversational AI, Chatbot Development" },
+    { category: "Cloud/DevOps", items: "AWS, Docker, Git, CI/CD, Kubernetes" },
+    { category: "Healthcare", items: "EHR/EMR Systems, HIPAA Compliance, HL7/FHIR, Telehealth" }
+  ];
 
-  // --- Professional Experience ---
-  addHeader("Professional Experience");
-  doc.setFont("Helvetica", "bold");
-  doc.setFontSize(13);
-  doc.text(
-    "Software Engineer —   Oodles AI ( Healthcare Platform)",
-    margin,
-    y
+  skills.forEach(skill => {
+    doc.setFont("Helvetica", "bold");
+    doc.setFontSize(10);
+    const categoryText = `${skill.category}: `;
+    const categoryWidth = doc.getTextWidth(categoryText);
+    doc.text(categoryText, margin, y);
+    
+    doc.setFont("Helvetica", "normal");
+    const lines = doc.splitTextToSize(skill.items, maxWidth - categoryWidth);
+    doc.text(lines, margin + categoryWidth, y);
+    y += lines.length * lineHeight + 4;
+  });
+  
+  y += 8;
+
+  // ========== PROFESSIONAL EXPERIENCE ==========
+  addSectionHeader("Professional Experience");
+  
+  addJobTitle(
+    "Software Engineer",
+    "Oodles AI (Healthcare Platform)",
+    "Houston, TX",
+    "Jan 2023 – Present (2+ Years)"
   );
+
+  addBulletPoints([
+    "Developed healthcare SaaS platform serving 50+ dental practices with comprehensive patient management capabilities",
+    "Built multi-channel AI agent system automating patient messaging and appointment reminders across SMS, email, and voice",
+    "Reduced administrative workload by 70% through automated workflows and intelligent task prioritization",
+    "Engineered HIPAA-compliant medical records and patient data system ensuring secure data handling and privacy",
+    "Decreased patient onboarding time by 60% using automated intake modules with real-time validation",
+    "Developed 8+ clinical assessment modules with real-time validation and error handling mechanisms",
+    "Contributed to 99.9% system uptime through optimized backend processes and proactive monitoring"
+  ]);
+
+  // ========== EDUCATION ==========
+  addSectionHeader("Education");
+  doc.setFont("Helvetica", "bold");
+  doc.setFontSize(10);
+  doc.text("Bachelor of Technology in Computer Science", margin, y);
+  y += 14;
+  
+  doc.setFont("Helvetica", "normal");
+  doc.text("VVIT Purnia | Graduated 2023 | CGPA: 8.0/10.0", margin, y);
   y += 18;
 
-  doc.setFont("Helvetica", "normal");
-  doc.setFontSize(11);
-  addText("Houston, TX • Jan 2023 – Present (2+ Years)");
-
-  addBullet([
-    "Developed healthcare SaaS platform serving 50+ dental practices.",
-    "Built multi-channel AI agent system automating patient messaging & reminders.",
-    "Reduced administrative workload by 70% through automated workflows.",
-    "Engineered HIPAA-compliant medical records & patient data system.",
-    "Decreased patient onboarding time by 60% using automated intake modules.",
-    "Developed 8+ clinical assessment modules with real-time validation.",
-    "Contributed to 99.9% system uptime through optimized backend processes.",
+  // ========== CERTIFICATIONS ==========
+  addSectionHeader("Certifications");
+  addBulletPoints([
+    "HIPAA Compliance Training - Healthcare Data Security and Privacy",
+    "AWS Certified Cloud Practitioner - Amazon Web Services",
+    "Full Stack Developer Training - MERN Stack Specialization",
+    "React & Data Structures & Algorithms Certification"
   ]);
 
-  // --- Education ---
-  addHeader("Education");
-  addText("B.Tech in Computer Science | VVIT Purnia | 2023 | 8.0 CGPA");
+  // ========== PORTFOLIO ==========
+  addSectionHeader("Portfolio");
+  doc.setTextColor(33, 102, 197);
+  addLink("portfolio-pi-ecru-48.vercel.app", "https://portfolio-pi-ecru-48.vercel.app/");
+  
+  // Save the PDF
+  doc.save("Md_Sahjaan_Resume_ATS_Friendly.pdf");
 
-  // --- Certifications ---
-  addHeader("Certifications");
-  addBullet([
-    "HIPAA Compliance Training",
-    "AWS Certified Cloud Practitioner",
-    "Full Stack Developer Training",
-    "React & DSA Certification",
-  ]);
-
-  // --- Save PDF ---
-  doc.save("Md_Sahjaan_Resume_With_Links.pdf");
+  // Success notification
+  notification.success({
+    message: 'Resume Downloaded!',
+    description: 'Your ATS-friendly resume has been downloaded successfully.',
+    duration: 3
+  });
 };
-
 
   const stats = [
     { value: '2+', label: 'Years Exp', icon: <StarOutlined /> },
@@ -892,7 +1118,25 @@ const downloadResume = () => {
                 </Text>
               ))}
             </Space>
-            
+          <Button
+  type="text"
+  icon={<ReloadOutlined style={{ fontSize: '22px', color: '#0f172a' }} />}
+  onClick={goToUpdatedCode}
+  style={{
+    padding: '8px 12px',
+    marginLeft: '12px',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '6px',
+    fontSize: '15px',
+    fontWeight: '600',
+    color: '#0f172a'
+  }}
+>
+  Refresh
+</Button>
+
+
             <Button
               className="btn-primary desktop-only"
               onClick={openWhatsApp}
@@ -954,6 +1198,25 @@ const downloadResume = () => {
                 {item}
               </Text>
             ))}
+<Button
+  type="text"
+  icon={<ReloadOutlined style={{ fontSize: '22px', color: '#0f172a' }} />}
+  onClick={goToUpdatedCode}
+  style={{
+    padding: '8px 12px',
+    marginLeft: '12px',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '6px',
+    fontSize: '15px',
+    fontWeight: '600',
+    color: '#0f172a'
+  }}
+>
+  Refresh
+</Button>
+
+
             <Button
               block
               onClick={openWhatsApp}
