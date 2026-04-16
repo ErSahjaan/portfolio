@@ -9,6 +9,8 @@ import TestCode from './pages/TestCode';
 import JobMatchingUI from './pages/Agentwork';
 import Plumber from './pages/Plumber/Plumber';
 import PlumbingWebsite from './pages/Plumber/Service';
+import AppAITeacher from './pages/AITeacher/AIInfluncer';
+import PrintCraft from './pages/AITeacher/CrapftTshirt';
 
 function App() {
   return (
@@ -16,6 +18,8 @@ function App() {
       <div className="App">
 
         <Routes>
+            <Route path="/ai-design" element={<PrintCraft/>} />
+             <Route path="/ai-teacher" element={<AppAITeacher/>} />
              <Route path="/plumber-service" element={<PlumbingWebsite/>} />
              <Route path="/plumber" element={<Plumber/>} />
             <Route path="/test1" element={<JobMatchingUI/>} />
@@ -23,7 +27,8 @@ function App() {
              <Route path="/purnia-airport" element={<Home />} />
           {/* Home route */}
             <Route path="/agent" element={<MultiIndustryPlatform />} />
-          <Route path="/" element={<TestCode />} />
+          {/* <Route path="/" element={<TestCode />} /> */}
+             <Route path="/" element={<Portfolio />} />
   <Route path="/updated-portfolio" element={<EnhancedPortfolio />} />
           {/* Add more routes here */}
           {/* 
