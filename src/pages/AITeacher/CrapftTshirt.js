@@ -42,6 +42,12 @@ const TEXT_COLORS = [
   "#0a0806","#f8f4ee","#c9962a","#c0370a","#185FA5","#2d4228","#993556","#534AB7",
 ];
 
+const SHIRT_TYPES = [
+  { key:"classic", label:"Classic Tee", note:"Half sleeve crew neck" },
+  { key:"full", label:"Full Sleeve", note:"Long sleeves for cooler days" },
+  { key:"collar", label:"Collar Polo", note:"Structured polo-style collar" },
+];
+
 const PLACEMENTS = [
   { key:"chest",      label:"Chest Centre", x:140,y:248,w:120,h:110 },
   { key:"left-chest", label:"Left Chest",   x:118,y:252,w:68, h:60  },
@@ -135,6 +141,35 @@ const GALLERY = [
     specs:[["Style","Squad / Group"],["Shirt","Forest Green"],["Print","DTG"],["Placement","Chest Centre"],["Best for","Group sets, reunions, class tees"]] },
 ];
 
+const GALLERY_SHIRT_TYPES = {
+  0:"collar",
+  1:"full",
+  2:"classic",
+  3:"collar",
+  4:"collar",
+  5:"full",
+  6:"classic",
+  7:"full",
+  8:"classic",
+  9:"full",
+  10:"classic",
+  11:"full",
+  12:"collar",
+  13:"classic",
+  14:"full",
+};
+
+GALLERY.forEach((item) => {
+  item.shirtType = GALLERY_SHIRT_TYPES[item.idx] || "classic";
+  const typeLabel = (SHIRT_TYPES.find(type => type.key === item.shirtType) || SHIRT_TYPES[0]).label;
+  item.specs = [
+    item.specs[0],
+    item.specs[1],
+    ["Type", typeLabel],
+    ...item.specs.slice(2),
+  ];
+});
+
 const GALLERY_CATS = [
   { key:"all",      label:"All Designs" },
   { key:"friends",  label:"👯 Friends & Besties" },
@@ -176,8 +211,72 @@ function wrapText(text, maxWidth, fontSize, letterSpacing = 0) {
   return lines;
 }
 
+function getShirtShape(type, small = false) {
+  const shapes = {
+    classic: small
+      ? {
+          body:"M36 48 L10 95 L42 105 L42 182 L138 182 L138 105 L170 95 L144 48 L118 35 C115 56 65 56 62 35 Z",
+          collar:"M62 35 C65 56 115 56 118 35 L126 39 C123 62 57 62 54 39Z",
+          slL:"M10 95 L36 48 L46 51 L22 100Z",
+          slR:"M144 48 L170 95 L158 100 L134 51Z",
+          hem:"M42 182 L138 182",
+          sizeY:200,
+        }
+      : {
+          body:"M80 108 L22 218 L93 239 L93 415 L307 415 L307 239 L378 218 L320 108 L270 80 C264 126 136 126 130 80 Z",
+          collar:"M130 80 C136 126 264 126 270 80 L286 90 C280 138 120 138 114 90 Z",
+          slL:"M22 218 L80 108 L107 116 L56 230 Z",
+          slR:"M320 108 L378 218 L344 230 L293 116 Z",
+          hem:"M93 239 L307 239",
+          sizeY:450,
+        },
+    full: small
+      ? {
+          body:"M44 50 L18 84 L34 95 L28 182 L56 182 L60 106 L120 106 L124 182 L152 182 L146 95 L162 84 L136 50 L114 36 C111 55 69 55 66 36 Z",
+          collar:"M66 36 C70 54 110 54 114 36 L121 40 C118 58 62 58 59 40 Z",
+          slL:"M18 84 L7 171 L27 177 L34 95 Z",
+          slR:"M162 84 L173 171 L153 177 L146 95 Z",
+          cuffL:"M7 171 L27 177 L24 186 L6 180 Z",
+          cuffR:"M173 171 L153 177 L156 186 L174 180 Z",
+          hem:"M56 182 L124 182",
+          sizeY:200,
+        }
+      : {
+          body:"M96 112 L46 188 L78 214 L65 414 L122 414 L130 240 L270 240 L278 414 L335 414 L322 214 L354 188 L304 112 L256 82 C250 120 150 120 144 82 Z",
+          collar:"M144 82 C150 118 250 118 256 82 L270 90 C264 126 136 126 130 90 Z",
+          slL:"M46 188 L24 390 L62 404 L78 214 Z",
+          slR:"M354 188 L376 390 L338 404 L322 214 Z",
+          cuffL:"M24 390 L62 404 L56 420 L20 408 Z",
+          cuffR:"M376 390 L338 404 L344 420 L380 408 Z",
+          hem:"M122 414 L278 414",
+          sizeY:448,
+        },
+    collar: small
+      ? {
+          body:"M36 49 L12 92 L43 104 L43 182 L137 182 L137 104 L168 92 L144 49 L120 38 L113 46 L106 62 L74 62 L67 46 L60 38 Z",
+          collar:"M67 46 L76 38 L90 55 L104 38 L113 46 L103 66 L77 66 Z",
+          placket:"M84 66 L96 66 L98 92 L82 92 Z",
+          slL:"M12 92 L36 49 L45 53 L24 99 Z",
+          slR:"M144 49 L168 92 L156 99 L135 53 Z",
+          hem:"M43 182 L137 182",
+          sizeY:200,
+        }
+      : {
+          body:"M80 110 L28 210 L94 238 L94 415 L306 415 L306 238 L372 210 L320 110 L276 85 L260 102 L243 136 L157 136 L140 102 L124 85 Z",
+          collar:"M140 102 L162 82 L200 124 L238 82 L260 102 L234 150 L166 150 Z",
+          placket:"M186 150 L214 150 L220 214 L180 214 Z",
+          slL:"M28 210 L80 110 L104 120 L58 228 Z",
+          slR:"M320 110 L372 210 L342 228 L296 120 Z",
+          hem:"M94 415 L306 415",
+          sizeY:450,
+        },
+  };
+
+  return shapes[type] || shapes.classic;
+}
+
 /* ─────────── SHIRT SVG ─────────── */
-function ShirtSVG({ shirtColor, text, font, textColor, fontSize, letterSpacing, bold, italic, uppercase, placement, mode, logoSrc, logoSize, small }) {
+function ShirtSVG({ shirtColor, shirtType = "classic", text, font, textColor, fontSize, letterSpacing, bold, italic, uppercase, placement, mode, logoSrc, logoSize, small }) {
   const p = PLACEMENTS.find(pl => pl.key === placement) || PLACEMENTS[0];
   const scale = small ? 180/400 : 1;
   const vb = small ? "0 0 180 220" : "0 0 400 460";
@@ -203,14 +302,7 @@ function ShirtSVG({ shirtColor, text, font, textColor, fontSize, letterSpacing, 
   const totalH = lines.length * lineH;
   const startY = sp.y + (sp.h - totalH) / 2 + fs * 0.85;
 
-  // Shirt path coords (scaled for small)
-  const S = small
-    ? { body:"M36 48 L10 95 L42 105 L42 182 L138 182 L138 105 L170 95 L144 48 L118 35 C115 56 65 56 62 35 Z",
-        collar:"M62 35 C65 56 115 56 118 35 L126 39 C123 62 57 62 54 39Z",
-        slL:"M10 95 L36 48 L46 51 L22 100Z", slR:"M144 48 L170 95 L158 100 L134 51Z" }
-    : { body:"M80 108 L22 218 L93 239 L93 415 L307 415 L307 239 L378 218 L320 108 L270 80 C264 126 136 126 130 80 Z",
-        collar:"M130 80 C136 126 264 126 270 80 L286 90 C280 138 120 138 114 90 Z",
-        slL:"M22 218 L80 108 L107 116 L56 230 Z", slR:"M320 108 L378 218 L344 230 L293 116 Z" };
+  const S = getShirtShape(shirtType, small);
 
   const logoW = sp.w * (logoSize/100);
   const logoH = sp.h * (logoSize/100);
@@ -231,7 +323,10 @@ function ShirtSVG({ shirtColor, text, font, textColor, fontSize, letterSpacing, 
       <path d={S.collar} fill="rgba(0,0,0,0.07)"/>
       <path d={S.slL} fill="rgba(0,0,0,0.07)"/>
       <path d={S.slR} fill="rgba(0,0,0,0.07)"/>
-      {!small && <line x1="93" y1="239" x2="307" y2="239" stroke="rgba(0,0,0,0.04)" strokeWidth="1"/>}
+      {S.placket && <path d={S.placket} fill="rgba(255,255,255,0.08)" stroke="rgba(0,0,0,0.12)" strokeWidth={small ? "0.6" : "1"}/>}
+      {S.cuffL && <path d={S.cuffL} fill="rgba(0,0,0,0.1)"/>}
+      {S.cuffR && <path d={S.cuffR} fill="rgba(0,0,0,0.1)"/>}
+      {S.hem && <path d={S.hem} stroke="rgba(0,0,0,0.04)" strokeWidth="1" fill="none"/>}
 
       {/* DESIGN AREA */}
       {mode === "text" && text && lines.map((line, i) => (
@@ -251,13 +346,13 @@ function ShirtSVG({ shirtColor, text, font, textColor, fontSize, letterSpacing, 
           {!small && <text x={cx} y={sp.y + sp.h/2 + 10} textAnchor="middle" fontFamily="Outfit,sans-serif" fontSize="8" fill="rgba(201,150,42,0.22)" letterSpacing="1">Start typing ↙</text>}
         </>
       )}
-      {!small && <text x="200" y="450" textAnchor="middle" fontFamily="Outfit,sans-serif" fontSize="8" fill="rgba(0,0,0,0.12)" letterSpacing="2">SIZE M</text>}
+      {!small && <text x="200" y={S.sizeY} textAnchor="middle" fontFamily="Outfit,sans-serif" fontSize="8" fill="rgba(0,0,0,0.12)" letterSpacing="2">SIZE M</text>}
     </svg>
   );
 }
 
 /* ─────────── GALLERY SHIRT (predefined designs) ─────────── */
-function GalleryShirtSVG({ idx, shirtColor }) {
+function GalleryShirtSVG({ idx, shirtColor, shirtType = "classic" }) {
   const designs = {
     0: ( // Minimal Brand Mark
       <>
@@ -409,12 +504,7 @@ function GalleryShirtSVG({ idx, shirtColor }) {
     ),
   };
 
-  const paths = {
-    body: "M36 48 L10 95 L42 105 L42 182 L138 182 L138 105 L170 95 L144 48 L118 35 C115 56 65 56 62 35 Z",
-    collar: "M62 35 C65 56 115 56 118 35 L126 39 C123 62 57 62 54 39Z",
-    slL: "M10 95 L36 48 L46 51 L22 100Z",
-    slR: "M144 48 L170 95 L158 100 L134 51Z",
-  };
+  const paths = getShirtShape(shirtType, true);
 
   return (
     <svg viewBox="0 0 180 220" width="140" xmlns="http://www.w3.org/2000/svg">
@@ -428,6 +518,9 @@ function GalleryShirtSVG({ idx, shirtColor }) {
       <path d={paths.collar} fill="rgba(0,0,0,0.07)"/>
       <path d={paths.slL} fill="rgba(0,0,0,0.07)"/>
       <path d={paths.slR} fill="rgba(0,0,0,0.07)"/>
+      {paths.placket && <path d={paths.placket} fill="rgba(255,255,255,0.08)" stroke="rgba(0,0,0,0.12)" strokeWidth="0.6"/>}
+      {paths.cuffL && <path d={paths.cuffL} fill="rgba(0,0,0,0.1)"/>}
+      {paths.cuffR && <path d={paths.cuffR} fill="rgba(0,0,0,0.1)"/>}
       {designs[idx]}
     </svg>
   );
@@ -456,10 +549,13 @@ function GalleryCard({ item, onUse, onPreview }) {
       )}
       <div style={{ padding:"20px 16px 14px", display:"flex", flexDirection:"column", alignItems:"center" }}>
         <div style={{ transition:"transform 0.35s cubic-bezier(0.34,1.56,0.64,1)", transform: hovered ? "translateY(-6px) scale(1.04)" : "none", marginBottom:10 }}>
-          <GalleryShirtSVG idx={item.idx} shirtColor={item.color}/>
+          <GalleryShirtSVG idx={item.idx} shirtColor={item.color} shirtType={item.shirtType}/>
         </div>
         <div style={{ fontFamily:"'Playfair Display',serif", fontSize:13, fontWeight:700, color:C.ivory, marginBottom:3, textAlign:"center", lineHeight:1.3 }}>{item.name}</div>
         <div style={{ fontSize:9, letterSpacing:2, textTransform:"uppercase", color:C.smoke, marginBottom:10, textAlign:"center" }}>{item.tag}</div>
+        <div style={{ fontSize:9, letterSpacing:1.5, textTransform:"uppercase", color:C.gold, marginBottom:10, textAlign:"center" }}>
+          {(SHIRT_TYPES.find(type => type.key === item.shirtType) || SHIRT_TYPES[0]).label}
+        </div>
         <div style={{ display:"flex", gap:6, opacity: hovered ? 1 : 0, transform: hovered ? "translateY(0)" : "translateY(8px)", transition:"all 0.25s", width:"100%" }}>
           <button onClick={() => onUse(item)} style={{ flex:1, background:C.gold, border:"none", color:C.ebony, fontFamily:"Outfit,sans-serif", fontSize:9, letterSpacing:1.5, textTransform:"uppercase", padding:"6px 0", cursor:"pointer", fontWeight:700 }}>
             Use This →
@@ -483,6 +579,7 @@ export default function PrintCraft() {
 
   // Studio state
   const [shirtColor, setShirtColor] = useState("#f8f4ee");
+  const [shirtType, setShirtType] = useState("classic");
   const [text, setText] = useState("PrintCraft");
   const [font, setFont] = useState("'Playfair Display',serif");
   const [textColor, setTextColor] = useState("#0a0806");
@@ -540,16 +637,17 @@ export default function PrintCraft() {
   const applyGalleryDesign = (item) => {
     applyPreset(item.preset);
     setShirtColor(item.color);
+    setShirtType(item.shirtType || "classic");
     setLbOpen(false);
     scrollTo(studioRef);
   };
 
   const saveDesign = () => {
-    setSavedDesigns(prev => [...prev, { id: Date.now(), text: text.slice(0,20), shirtColor, textColor }]);
+    setSavedDesigns(prev => [...prev, { id: Date.now(), text: text.slice(0,20), shirtColor, textColor, shirtType }]);
     messageApi.success("Design saved ✓");
   };
 
-  const placeOrder = () => messageApi.success(`Order placed! ${qty} × ${size} @ ₹${ppp}/pc ✓`);
+  const placeOrder = () => messageApi.success(`Order placed! ${qty} × ${size} ${(SHIRT_TYPES.find(type => type.key === shirtType) || SHIRT_TYPES[0]).label} @ ₹${ppp}/pc ✓`);
 
   const filteredGallery = galCat === "all" ? GALLERY : GALLERY.filter(g => g.cat === galCat);
 
@@ -716,8 +814,11 @@ export default function PrintCraft() {
                   </button>
                 ))}
               </Space>
-              <ShirtSVG shirtColor={heroShirtColor} text="PrintCraft" font="'Playfair Display',serif" textColor="#c9962a"
+              <ShirtSVG shirtColor={heroShirtColor} shirtType="collar" text="PrintCraft" font="'Playfair Display',serif" textColor="#c9962a"
                 fontSize={13} letterSpacing={2} bold italic={false} uppercase={false} placement="chest" mode="text" logoSrc={null} logoSize={55} small={isMobile}/>
+              <div style={{ fontSize:10, letterSpacing:2, textTransform:"uppercase", color:C.golddk, opacity:0.7, marginTop:10 }}>
+                Now with classic, full sleeve and collar options
+              </div>
               <Space wrap style={{marginTop:14, justifyContent:"center"}}>
                 {SHIRT_COLORS.slice(0,8).map(({c,name})=>(
                   <Tooltip key={c} title={name}>
@@ -769,6 +870,23 @@ export default function PrintCraft() {
                       {shirtColor===c && <span style={{position:"absolute",inset:0,display:"flex",alignItems:"center",justifyContent:"center",fontSize:10,color:"rgba(255,255,255,0.9)",fontWeight:700}}>✓</span>}
                     </div>
                   </Tooltip>
+                ))}
+              </div>
+            </div>
+
+            <div style={{ borderBottom:`1px solid rgba(201,150,42,0.08)`, padding:controlPad }}>
+              {ctrlLabel("T-Shirt Type")}
+              <div style={{ display:"grid", gap:8 }}>
+                {SHIRT_TYPES.map(type=>(
+                  <button key={type.key} onClick={()=>{ setShirtType(type.key); messageApi.info(`T-shirt type: ${type.label}`); }}
+                    style={{ background: shirtType===type.key?"rgba(201,150,42,0.12)":"none", border:`1px solid ${shirtType===type.key?"rgba(201,150,42,0.45)":"rgba(201,150,42,0.18)"}`, color: shirtType===type.key?C.ivory:C.smoke, padding:"10px 12px", cursor:"pointer", textAlign:"left", transition:"all 0.2s" }}>
+                    <div style={{ fontSize:11, letterSpacing:1.2, textTransform:"uppercase", color: shirtType===type.key?C.gold:"inherit", marginBottom:4 }}>
+                      {type.label}
+                    </div>
+                    <div style={{ fontSize:11, color:C.smoke, lineHeight:1.5 }}>
+                      {type.note}
+                    </div>
+                  </button>
                 ))}
               </div>
             </div>
@@ -915,8 +1033,11 @@ export default function PrintCraft() {
                 <button key={v} style={{ background:"none", border:`1px solid rgba(10,8,6,0.2)`, color:"rgba(10,8,6,0.45)", fontFamily:"Outfit,sans-serif", fontSize:9, letterSpacing:2, textTransform:"uppercase", padding:"6px 14px", cursor:"pointer" }}>{v}</button>
               ))}
             </Space>
+            <div style={{ fontSize:10, letterSpacing:2, textTransform:"uppercase", color:C.golddk, opacity:0.75, marginBottom:12, position:"relative", zIndex:2, textAlign:"center" }}>
+              {(SHIRT_TYPES.find(type => type.key === shirtType) || SHIRT_TYPES[0]).label}
+            </div>
             <div style={{ width:"100%", display:"flex", justifyContent:"center", position:"relative", zIndex:2 }}>
-              <ShirtSVG shirtColor={shirtColor} text={text} font={font} textColor={textColor}
+              <ShirtSVG shirtColor={shirtColor} shirtType={shirtType} text={text} font={font} textColor={textColor}
                 fontSize={fontSize} letterSpacing={letterSpacing} bold={bold} italic={italic}
                 uppercase={uppercase} placement={placement} mode={mode} logoSrc={logoSrc} logoSize={logoSize} small={isMobile}/>
             </div>
@@ -928,8 +1049,11 @@ export default function PrintCraft() {
                 <Space>
                   {savedDesigns.map(d=>(
                     <Tooltip key={d.id} title={d.text}>
-                      <div style={{ width:48, height:48, border:`1px solid rgba(201,150,42,0.25)`, background:d.shirtColor, display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", fontSize:8, color:d.textColor, fontWeight:700, textAlign:"center", padding:2, overflow:"hidden" }}>
-                        {d.text.slice(0,8)}
+                      <div style={{ width:56, height:56, border:`1px solid rgba(201,150,42,0.25)`, background:d.shirtColor, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", cursor:"pointer", fontSize:8, color:d.textColor, fontWeight:700, textAlign:"center", padding:2, overflow:"hidden" }}>
+                        <span>{d.text.slice(0,8)}</span>
+                        <span style={{ fontSize:7, color:C.gold, marginTop:4, letterSpacing:0.5 }}>
+                          {(SHIRT_TYPES.find(type => type.key === d.shirtType) || SHIRT_TYPES[0]).label.replace(" Tee","")}
+                        </span>
                       </div>
                     </Tooltip>
                   ))}
@@ -1120,7 +1244,7 @@ export default function PrintCraft() {
           <div style={{ display:"grid", gridTemplateColumns: screens.md?"1fr 1fr":"1fr" }}>
             <div style={{ background:C.parchment, display:"flex", alignItems:"center", justifyContent:"center", padding:isMobile ? "28px 16px" : "40px 24px", position:"relative", overflow:"hidden", minHeight:isMobile ? 240 : 320 }}>
               <div style={{ position:"absolute", inset:0, opacity:0.04, backgroundImage:"repeating-linear-gradient(45deg,#000 0,#000 1px,transparent 1px,transparent 10px)" }}/>
-              <GalleryShirtSVG idx={lbItem.idx} shirtColor={lbItem.color}/>
+              <GalleryShirtSVG idx={lbItem.idx} shirtColor={lbItem.color} shirtType={lbItem.shirtType}/>
               <button onClick={()=>shiftLb(-1)} style={{ position:"absolute", left:8, top:"50%", transform:"translateY(-50%)", background:"rgba(10,8,6,0.7)", border:`1px solid rgba(201,150,42,0.2)`, color:C.gold, width:32, height:32, cursor:"pointer", fontSize:16, display:"flex", alignItems:"center", justifyContent:"center" }}><LeftOutlined/></button>
               <button onClick={()=>shiftLb(1)} style={{ position:"absolute", right:8, top:"50%", transform:"translateY(-50%)", background:"rgba(10,8,6,0.7)", border:`1px solid rgba(201,150,42,0.2)`, color:C.gold, width:32, height:32, cursor:"pointer", fontSize:16, display:"flex", alignItems:"center", justifyContent:"center" }}><RightOutlined/></button>
             </div>
