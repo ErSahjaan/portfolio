@@ -1,18 +1,16 @@
 import React, { useState, useEffect, useRef } from 'react';
-import logo from './assets/images/avf.png'
-import jsPDF from "jspdf";
-import { Layout, Card, Row, Col, Tag, Typography, Button, Space, Tooltip, Drawer, Input, Form, notification, Progress, Modal, Avatar } from 'antd';
+import portrait from './assets/images/hero-portrait-cutout.png';
+import ResumeBuilder, { additionalSkills, coreSkills, degree, profileRole, profileSummary, work } from './ResumeBuilder';
+import { projectConcepts } from './projectConcepts';
+import AboutIntroduction from './AboutIntroduction';
+import { Layout, Card, Row, Col, Tag, Typography, Button, Space, Tooltip, Drawer, Input, Form, notification, Modal, Avatar } from 'antd';
 import {
   MailOutlined,
   PhoneOutlined,
   LinkedinOutlined,
   GithubOutlined,
-  EnvironmentOutlined,
   CodeOutlined,
-  CloudOutlined,
-  DatabaseOutlined,
   RocketOutlined,
-  SafetyCertificateOutlined,
   CheckCircleOutlined,
   ThunderboltOutlined,
   HeartOutlined,
@@ -23,27 +21,21 @@ import {
   ArrowUpOutlined,
   WhatsAppOutlined,
   MenuOutlined,
-  ArrowRightOutlined,
-  StarOutlined,
   MedicineBoxOutlined,
-  RobotOutlined,
   DashboardOutlined,
   MessageOutlined,
   ArrowDownOutlined,
   SendOutlined,
   CloseOutlined,
-  BulbOutlined,
   TrophyOutlined,
   FireOutlined,
   EyeOutlined,
-  TeamOutlined,
-  LoadingOutlined,
   SmileOutlined
 } from '@ant-design/icons';
 
 // Firebase imports
 import { initializeApp } from "firebase/app";
-import { getDatabase, ref, push, onValue, serverTimestamp } from "firebase/database";
+import { getDatabase, ref, push, onValue } from "firebase/database";
 
 const { Content, Footer } = Layout;
 const { Title, Text, Paragraph } = Typography;
@@ -216,6 +208,7 @@ const enhancedStyleSheet = `
     left: -100%;
     width: 100%;
     height: 100%;
+    pointer-events: none;
     background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
     transition: left 0.5s ease;
   }
@@ -389,6 +382,7 @@ const enhancedStyleSheet = `
     left: 0;
     right: 0;
     height: 4px;
+    pointer-events: none;
     background: linear-gradient(90deg, var(--project-color), transparent);
     opacity: 0;
     transition: opacity 0.3s ease;
@@ -398,6 +392,7 @@ const enhancedStyleSheet = `
     content: '';
     position: absolute;
     inset: 0;
+    pointer-events: none;
     background: radial-gradient(circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(99, 102, 241, 0.1), transparent 50%);
     opacity: 0;
     transition: opacity 0.3s ease;
@@ -490,60 +485,6 @@ const enhancedStyleSheet = `
   
   .blob-animation {
     animation: morphBlob 8s ease-in-out infinite;
-  }
-  
-  /* Stats Card with Counter Animation */
-  .stat-card {
-    position: relative;
-    overflow: hidden;
-  }
-  
-  .stat-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(135deg, rgba(99, 102, 241, 0.05) 0%, transparent 100%);
-    opacity: 0;
-    transition: opacity 0.3s ease;
-  }
-  
-  .stat-card:hover::before {
-    opacity: 1;
-  }
-  
-  .stat-card:hover .stat-number {
-    transform: scale(1.1);
-  }
-  
-  .stat-number {
-    transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
-    animation: countUp 0.8s ease-out;
-  }
-  
-  /* Profile Image with Advanced Effect */
-  .profile-image {
-    transition: all 0.6s cubic-bezier(0.23, 1, 0.32, 1);
-    position: relative;
-  }
-  
-  .profile-image::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(139, 92, 246, 0.2));
-    opacity: 0;
-    transition: opacity 0.3s ease;
-  }
-  
-  .profile-image:hover {
-    transform: scale(1.03);
-  }
-  
-  .profile-image:hover::before {
-    opacity: 1;
   }
   
   /* Skill Card with 3D Effect */
@@ -685,12 +626,12 @@ const enhancedStyleSheet = `
   .animate-bounce { animation: bounce 2s ease-in-out infinite; }
   
   /* Responsive */
-  @media (max-width: 768px) {
+  @media (max-width: 1179px) {
     .desktop-only { display: none !important; }
     .mobile-only { display: flex !important; }
   }
   
-  @media (min-width: 769px) {
+  @media (min-width: 1180px) {
     .desktop-only { display: flex !important; }
     .mobile-only { display: none !important; }
   }
@@ -747,19 +688,19 @@ export default function EnhancedPortfolio() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
+  const [resumeOpen, setResumeOpen] = useState(false);
   const [contactModalOpen, setContactModalOpen] = useState(false);
   const [projectModalOpen, setProjectModalOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState(null);
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [isTyping, setIsTyping] = useState(false);
   const [messages, setMessages] = useState([]);
   const [currentMessage, setCurrentMessage] = useState("");
   const chatBodyRef = useRef(null);
-  const [form] = Form.useForm();
   const [contactForm] = Form.useForm();
 
-  // Custom cursor effect
+  // Keep the custom cursor on pointer devices only.
   useEffect(() => {
+    if (!window.matchMedia('(hover: hover) and (pointer: fine)').matches) return undefined;
     const cursor = document.createElement('div');
     const cursorDot = document.createElement('div');
     cursor.className = 'custom-cursor';
@@ -772,7 +713,6 @@ export default function EnhancedPortfolio() {
       cursor.style.top = e.clientY + 'px';
       cursorDot.style.left = e.clientX + 'px';
       cursorDot.style.top = e.clientY + 'px';
-      setMousePosition({ x: e.clientX, y: e.clientY });
     };
 
     window.addEventListener('mousemove', moveCursor);
@@ -883,345 +823,50 @@ export default function EnhancedPortfolio() {
   };
 
   const info = {
-    name: "Md Sahjaan",
-    role: "Full-Stack Software Engineer",
+    name: "Er, Md Sahjaan",
+    role: profileRole,
     email: "sahjan11957@gmail.com",
     phone: "+91 9262909338",
     location: "Purnea, Bihar, India",
     whatsapp: "919262909338",
     website: "https://portfolio-pi-ecru-48.vercel.app/",
-    photo: logo
+    photo: portrait
   };
 
   const openWhatsApp = () => {
-    window.open(`https://wa.me/${info.whatsapp}?text=${encodeURIComponent("Hi Md Sahjaan, I'd like to discuss a project opportunity.")}`, '_blank');
+    window.open(`https://wa.me/${info.whatsapp}?text=${encodeURIComponent("Hi Er, Md Sahjaan, I'd like to discuss a project opportunity.")}`, '_blank');
   };
-
-const downloadResume = () => {
-  const doc = new jsPDF({
-    unit: "pt",
-    format: "a4",
-  });
-
-  let y = 50;
-  const margin = 50;
-  const pageWidth = doc.internal.pageSize.getWidth();
-  const pageHeight = doc.internal.pageSize.getHeight();
-  const maxWidth = pageWidth - 2 * margin;
-  const lineHeight = 14;
-
-  // Color scheme
-  const primaryColor = [31, 78, 121]; // Professional blue
-  const textColor = [40, 40, 40]; // Dark gray
-  const lightGray = [100, 100, 100];
-
-  // Check if new page is needed
-  const checkPageBreak = (requiredSpace) => {
-    if (y + requiredSpace > pageHeight - margin) {
-      doc.addPage();
-      y = margin;
-    }
-  };
-
-  // Add section header with underline
-  const addSectionHeader = (text) => {
-    checkPageBreak(30);
-    doc.setFont("Helvetica", "bold");
-    doc.setFontSize(13);
-    doc.setTextColor(...primaryColor);
-    doc.text(text.toUpperCase(), margin, y);
-    
-    // Add underline
-    const textWidth = doc.getTextWidth(text.toUpperCase());
-    doc.setDrawColor(...primaryColor);
-    doc.setLineWidth(1.5);
-    doc.line(margin, y + 3, margin + textWidth, y + 3);
-    
-    y += 20;
-    doc.setTextColor(...textColor);
-  };
-
-  // Add regular text
-  const addText = (text, bold = false, fontSize = 10) => {
-    checkPageBreak(lineHeight * 2);
-    doc.setFont("Helvetica", bold ? "bold" : "normal");
-    doc.setFontSize(fontSize);
-    doc.setTextColor(...textColor);
-    
-    const lines = doc.splitTextToSize(text, maxWidth);
-    doc.text(lines, margin, y);
-    y += lines.length * lineHeight;
-  };
-
-  // Add bullet points
-  const addBulletPoints = (items) => {
-    doc.setFont("Helvetica", "normal");
-    doc.setFontSize(10);
-    doc.setTextColor(...textColor);
-    
-    items.forEach((item) => {
-      checkPageBreak(lineHeight * 3);
-      const bulletX = margin + 5;
-      const textX = margin + 20;
-      
-      // Add bullet
-      doc.circle(bulletX, y - 3, 1.5, "F");
-      
-      // Add text
-      const lines = doc.splitTextToSize(item, maxWidth - 20);
-      doc.text(lines, textX, y);
-      y += lines.length * lineHeight;
-    });
-    y += 8;
-  };
-
-  // Add job title with company
-  const addJobTitle = (title, company, location, dates) => {
-    checkPageBreak(35);
-    doc.setFont("Helvetica", "bold");
-    doc.setFontSize(11);
-    doc.setTextColor(...textColor);
-    doc.text(title, margin, y);
-    y += 14;
-    
-    doc.setFont("Helvetica", "italic");
-    doc.setFontSize(10);
-    doc.setTextColor(...lightGray);
-    doc.text(`${company} | ${location}`, margin, y);
-    y += 12;
-    
-    doc.setFont("Helvetica", "normal");
-    doc.text(dates, margin, y);
-    y += 16;
-  };
-
-  // Add clickable link
-  const addLink = (text, url) => {
-    checkPageBreak(lineHeight);
-    doc.setFont("Helvetica", "normal");
-    doc.setFontSize(10);
-    doc.setTextColor(33, 102, 197);
-    doc.textWithLink(text, margin, y, { url: url });
-    y += lineHeight;
-  };
-
-  // ========== HEADER SECTION ==========
-  doc.setFont("Helvetica", "bold");
-  doc.setFontSize(26);
-  doc.setTextColor(...primaryColor);
-  doc.text("MD SAHJAAN", margin, y);
-  y += 24;
-
-  doc.setFont("Helvetica", "normal");
-  doc.setFontSize(12);
-  doc.setTextColor(...lightGray);
-  doc.text("Full-Stack Software Engineer", margin, y);
-  y += 20;
-
-  // Contact information
-  doc.setFont("Helvetica", "normal");
-  doc.setFontSize(10);
-  doc.setTextColor(...textColor);
-  addText(`${info.email} | ${info.phone} | ${info.location}`);
-  
-  addLink("linkedin.com/in/er-md-sahjaan", "https://www.linkedin.com/in/er-md-sahjaan-4a33b1247");
-  addLink("github.com/ErSahjaan", "https://github.com/ErSahjaan");
-  
-  y += 15;
-
-  // ========== PROFESSIONAL SUMMARY ==========
-  addSectionHeader("Professional Summary");
-  addText(
-    "Software Engineer specializing in healthcare SaaS, AI-driven automation, and HIPAA-compliant platforms. Experienced in building scalable full-stack applications, clinical workflow systems, and high-uptime medical records solutions. Strong focus on conversational AI, patient engagement automation, and secure cloud deployments."
-  );
-  y += 12;
-
-  // ========== TECHNICAL SKILLS ==========
-  addSectionHeader("Technical Skills");
-  
-  const skills = [
-    { category: "Languages", items: "JavaScript, TypeScript, Python, Java, SQL, HTML5, CSS3" },
-    { category: "Frontend", items: "React.js, Next.js, Redux, Tailwind CSS, Responsive Design" },
-    { category: "Backend", items: "Node.js, Express.js, Spring Boot, RESTful APIs, Microservices" },
-    { category: "Databases", items: "PostgreSQL, MongoDB, MySQL" },
-    { category: "AI/ML", items: "OpenAI, NLP, Conversational AI, Chatbot Development" },
-    { category: "Cloud/DevOps", items: "AWS, Docker, Git, CI/CD, Kubernetes" },
-    { category: "Healthcare", items: "EHR/EMR Systems, HIPAA Compliance, HL7/FHIR, Telehealth" }
-  ];
-
-  skills.forEach(skill => {
-    doc.setFont("Helvetica", "bold");
-    doc.setFontSize(10);
-    const categoryText = `${skill.category}: `;
-    const categoryWidth = doc.getTextWidth(categoryText);
-    doc.text(categoryText, margin, y);
-    
-    doc.setFont("Helvetica", "normal");
-    const lines = doc.splitTextToSize(skill.items, maxWidth - categoryWidth);
-    doc.text(lines, margin + categoryWidth, y);
-    y += lines.length * lineHeight + 4;
-  });
-  
-  y += 8;
-
-  // ========== PROFESSIONAL EXPERIENCE ==========
-  addSectionHeader("Professional Experience");
-  
-  addJobTitle(
-    "Software Engineer",
-    "Oodles AI (Healthcare Platform)",
-    "Houston, TX",
-    "Jan 2023 – Present (2+ Years)"
-  );
-
-  addBulletPoints([
-    "Developed healthcare SaaS platform serving 50+ dental practices with comprehensive patient management capabilities",
-    "Built multi-channel AI agent system automating patient messaging and appointment reminders across SMS, email, and voice",
-    "Reduced administrative workload by 70% through automated workflows and intelligent task prioritization",
-    "Engineered HIPAA-compliant medical records and patient data system ensuring secure data handling and privacy",
-    "Decreased patient onboarding time by 60% using automated intake modules with real-time validation",
-    "Developed 8+ clinical assessment modules with real-time validation and error handling mechanisms",
-    "Contributed to 99.9% system uptime through optimized backend processes and proactive monitoring"
-  ]);
-
-  // ========== EDUCATION ==========
-  addSectionHeader("Education");
-  doc.setFont("Helvetica", "bold");
-  doc.setFontSize(10);
-  doc.text("Bachelor of Technology in Computer Science", margin, y);
-  y += 14;
-  
-  doc.setFont("Helvetica", "normal");
-  doc.text("VVIT Purnia | Graduated 2023 | CGPA: 8.0/10.0", margin, y);
-  y += 18;
-
-  // ========== CERTIFICATIONS ==========
-  addSectionHeader("Certifications");
-  addBulletPoints([
-    "HIPAA Compliance Training - Healthcare Data Security and Privacy",
-    "AWS Certified Cloud Practitioner - Amazon Web Services",
-    "Full Stack Developer Training - MERN Stack Specialization",
-    "React & Data Structures & Algorithms Certification"
-  ]);
-
-  // ========== PORTFOLIO ==========
-  addSectionHeader("Portfolio");
-  doc.setTextColor(33, 102, 197);
-  addLink("portfolio-pi-ecru-48.vercel.app", "https://portfolio-pi-ecru-48.vercel.app/");
-  
-  // Save the PDF
-  doc.save("Md_Sahjaan_Resume_ATS_Friendly.pdf");
-
-  // Success notification
-  notification.success({
-    message: 'Resume Downloaded!',
-    description: 'Your ATS-friendly resume has been downloaded successfully.',
-    duration: 3
-  });
-};
-
-  const stats = [
-    { value: '2+', label: 'Years Exp', icon: <StarOutlined />, color: '#6366f1' },
-    { value: '50+', label: 'Practices', icon: <HeartOutlined />, color: '#ec4899' },
-    { value: '1000+', label: 'Users Daily', icon: <TeamOutlined />, color: '#10b981' },
-    { value: '99.9%', label: 'Uptime', icon: <ThunderboltOutlined />, color: '#f59e0b' }
-  ];
 
   const skills = [
-    { name: 'Frontend', items: ['React.js', 'Next.js', 'TypeScript', 'Tailwind'], icon: <AppstoreOutlined />, color: '#6366f1', gradient: 'linear-gradient(135deg, #6366f1 0%, #818cf8 100%)', level: 95 },
-    { name: 'Backend', items: ['Node.js', 'Spring Boot', 'Express.js', 'Python'], icon: <ApiOutlined />, color: '#8b5cf6', gradient: 'linear-gradient(135deg, #8b5cf6 0%, #a78bfa 100%)', level: 90 },
-    { name: 'Database', items: ['PostgreSQL', 'MongoDB', 'MySQL', 'Redis'], icon: <DatabaseOutlined />, color: '#06b6d4', gradient: 'linear-gradient(135deg, #06b6d4 0%, #22d3ee 100%)', level: 88 },
-    { name: 'Cloud & AI', items: ['AWS', 'Docker', 'OpenAI', 'K8s'], icon: <CloudOutlined />, color: '#10b981', gradient: 'linear-gradient(135deg, #10b981 0%, #34d399 100%)', level: 85 }
+    { name: 'Backend', items: ['Java', 'Spring Boot'], icon: <ApiOutlined />, color: '#8b5cf6', gradient: 'linear-gradient(135deg, #8b5cf6, #a78bfa)' },
+    { name: 'Frontend', items: ['React.js'], icon: <AppstoreOutlined />, color: '#6366f1', gradient: 'linear-gradient(135deg, #6366f1, #818cf8)' },
+    { name: 'Integrations', items: additionalSkills, icon: <ApiOutlined />, color: '#0891b2', gradient: 'linear-gradient(135deg, #0891b2, #22d3ee)' },
   ];
 
   const projects = [
     {
-      title: 'AI-Powered Dental Practice Platform',
-      desc: 'Comprehensive healthcare SaaS serving 50+ dental practices with integrated patient engagement and clinical operations management',
-      longDesc: 'Built a full-featured healthcare platform that revolutionizes dental practice management through AI-powered automation, patient engagement tools, and comprehensive clinical workflow systems.',
-      tags: ['React.js', 'Node.js', 'HIPAA'],
+      title: 'Patient Intake Forms',
+      desc: 'Digital forms for collecting patient history and medication details.',
+      longDesc: 'Built form interfaces for collecting medical history and medication information, with validation for required fields.',
+      tags: ['React.js', 'Form validation'],
       color: '#6366f1',
       icon: <MedicineBoxOutlined />,
-      metrics: ['50+ Practices', '70% Time Saved', '99.9% Uptime']
-    },
-    {
-      title: 'Multi-Agent Communication System',
-      desc: 'AI-powered hub with Lead, Review & Appointment agents improving patient engagement by 45% through automated outreach',
-      longDesc: 'Developed an intelligent multi-agent system that handles patient communications across multiple channels, automating appointment reminders, review requests, and lead follow-ups.',
-      tags: ['NLP', 'OpenAI', 'Microservices'],
-      color: '#8b5cf6',
-      icon: <RobotOutlined />,
-      metrics: ['45% Engagement', '24/7 Support', '1000+ Daily']
-    },
-    {
-      title: 'Digital Medical History Platform',
-      desc: 'Comprehensive intake system with 12+ body system reviews, medications tracking, and real-time validation',
-      longDesc: 'Created a sophisticated medical history collection platform with intelligent validation, comprehensive body system reviews, and seamless integration with EHR systems.',
-      tags: ['React', 'Healthcare', 'Forms'],
-      color: '#06b6d4',
-      icon: <HeartOutlined />,
-      metrics: ['60% Faster', '12+ Modules', 'HIPAA Safe']
     },
     {
       title: 'Clinical Operations Dashboard',
-      desc: 'Centralized management for appointments, billing, imaging with real-time analytics tracking practice performance',
-      longDesc: 'Engineered a comprehensive dashboard that provides real-time insights into practice operations, financial metrics, and patient care quality indicators.',
-      tags: ['Analytics', 'Dashboard', 'REST API'],
-      color: '#10b981',
+      desc: 'A dashboard for appointments and practice workflows.',
+      longDesc: 'Worked on dashboard screens that bring appointment and practice information together for staff.',
+      tags: ['React.js', 'Dashboard'],
+      color: '#0891b2',
       icon: <DashboardOutlined />,
-      metrics: ['Real-time', 'Multi-clinic', 'Advanced AI']
-    }
-  ];
-
-  const education = [
-    { degree: 'B.Tech in Computer Science', school: 'VVIT Purnia', year: '2023', score: '8.0 CGPA' },
-    { degree: 'Higher Secondary (12th)', school: 'Rkk College Madhubani', year: '2019', score: '65.5%' },
-    { degree: 'Secondary (10th)', school: 'High School Aamchura', year: '2017', score: '65.4%' }
-  ];
-
-  const certs = [
-    { name: 'HIPAA Compliance Training', issuer: 'Healthcare IT', year: '2023' },
-    { name: 'AWS Certified Cloud Practitioner', issuer: 'Amazon Web Services', year: '2023' },
-    { name: 'Full Stack Developer Training', issuer: 'Coursera', year: '2022' },
-    { name: 'React & DSA Certification', issuer: 'Udemy', year: '2022' }
-  ];
-
-  const experience = [
-    {
-      title: 'Software Engineer',
-      company: 'Oodles AI',
-      project: 'Oodles AI Healthcare Platform',
-      location: 'Houston, TX, USA',
-      period: 'January 2023 – Present',
-      duration: '2+ Years',
-      type: 'Full-time',
-      achievements: [
-        'Developed comprehensive healthcare SaaS platform serving 50+ dental practices',
-        'Built multi-channel AI agent system reducing administrative workload by 70%',
-        'Engineered HIPAA-compliant medical records with 60% faster onboarding',
-        'Implemented 8+ clinical assessment modules for dental examinations',
-        'Achieved 99.9% platform uptime with full HIPAA compliance'
-      ],
-      technologies: ['React.js', 'Node.js', 'Spring Boot', 'PostgreSQL', 'AWS', 'OpenAI']
-    }
-  ];
-
-  const testimonials = [
-    {
-      name: 'Dr. Sarah Johnson',
-      role: 'Dental Practice Owner',
-      content: 'The platform has transformed how we manage our practice. Patient engagement is up 45% and admin work is down significantly.',
-      avatar: '👩‍⚕️',
-      rating: 5
     },
-    {
-      name: 'Michael Chen',
-      role: 'Healthcare IT Director',
-      content: 'Outstanding work on the AI integration. The system handles complex workflows seamlessly while maintaining HIPAA compliance.',
-      avatar: '👨‍💼',
-      rating: 5
-    }
+    { ...projectConcepts[0], color: '#8b5cf6', icon: <AppstoreOutlined /> },
+    { ...projectConcepts[1], color: '#15803d', icon: <MedicineBoxOutlined /> },
   ];
+
+  const education = [degree];
+  const experience = [work];
+  const openResumeBuilder = () => setResumeOpen(true);
 
   const navItems = ['About', 'Experience', 'Skills', 'Projects', 'Education', 'Contact'];
 
@@ -1231,7 +876,7 @@ const downloadResume = () => {
       <Layout style={{ background: '#fafbfc', minHeight: '100vh' }}>
         
         {/* Enhanced Header with Glassmorphism */}
-        <header style={{
+        <header className="portfolio-header" style={{
           position: 'fixed',
           top: 0,
           left: 0,
@@ -1244,16 +889,15 @@ const downloadResume = () => {
           animation: 'fadeInDown 0.8s ease',
           boxShadow: scrolled ? '0 4px 24px rgba(0, 0, 0, 0.06)' : 'none'
         }}>
-          <div style={{
+          <div className="portfolio-header-inner" style={{
             maxWidth: '1280px',
             margin: '0 auto',
-            padding: '18px 32px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between'
           }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <div style={{
+            <div className="portfolio-brand">
+              <div className="portfolio-brand-mark" style={{
                 width: '40px',
                 height: '40px',
                 borderRadius: '12px',
@@ -1274,8 +918,7 @@ const downloadResume = () => {
               >
                 MS
               </div>
-              <Text style={{ 
-                fontSize: '26px', 
+              <Text className="portfolio-brand-name" style={{
                 fontWeight: '800', 
                 color: '#0f172a',
                 cursor: 'pointer',
@@ -1284,11 +927,11 @@ const downloadResume = () => {
               }}
               onClick={() => scrollTo('hero')}
               >
-                Md Sahjaan<span className="gradient-text">.</span>
+                {info.name}<span className="gradient-text">.</span>
               </Text>
             </div>
             
-            <Space size={36} className="desktop-only">
+            <Space size={24} className="desktop-only">
               {navItems.map((item, i) => (
                 <Text
                   key={item}
@@ -1349,8 +992,10 @@ const downloadResume = () => {
             </Space>
             
             <Button
-              className="mobile-only"
+              className="mobile-only portfolio-menu-toggle"
               type="text"
+              aria-label="Open navigation menu"
+              aria-expanded={mobileMenuOpen}
               icon={<MenuOutlined style={{ fontSize: '22px', color: '#0f172a' }} />}
               onClick={() => setMobileMenuOpen(true)}
               style={{ padding: '8px' }}
@@ -1363,13 +1008,13 @@ const downloadResume = () => {
           open={mobileMenuOpen}
           onClose={() => setMobileMenuOpen(false)}
           placement="right"
-          width={320}
-          styles={{ 
-            body: { padding: '48px 32px', background: 'linear-gradient(135deg, #fafbfc 0%, #f1f5f9 100%)' },
-            header: { display: 'none' }
+          width="min(320px, 100vw)"
+          title="Navigation"
+          styles={{
+            body: { padding: '20px', background: 'linear-gradient(135deg, #fafbfc 0%, #f1f5f9 100%)' }
           }}
         >
-          <Space direction="vertical" size={24} style={{ width: '100%' }}>
+          <Space direction="vertical" size={12} style={{ width: '100%' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
               <div style={{
                 width: '48px',
@@ -1388,7 +1033,9 @@ const downloadResume = () => {
               <Text style={{ fontSize: '24px', fontWeight: '800' }}>Menu</Text>
             </div>
             {navItems.map((item) => (
-              <Text
+              <Button
+                type="text"
+                block
                 key={item}
                 onClick={() => scrollTo(item.toLowerCase())}
                 style={{ 
@@ -1396,8 +1043,10 @@ const downloadResume = () => {
                   fontWeight: '600', 
                   cursor: 'pointer', 
                   display: 'block',
+                  height: 'auto',
+                  textAlign: 'left',
                   color: '#0f172a',
-                  padding: '12px 16px',
+                  padding: '10px 14px',
                   borderRadius: '12px',
                   background: '#fff',
                   transition: 'all 0.3s ease'
@@ -1412,7 +1061,7 @@ const downloadResume = () => {
                 }}
               >
                 {item}
-              </Text>
+              </Button>
             ))}
             <Button
               block
@@ -1436,53 +1085,13 @@ const downloadResume = () => {
 
         <Content>
           
-          {/* Enhanced Hero Section with Particles */}
-          <section id="hero" style={{
-            minHeight: '100vh',
-            display: 'flex',
-            alignItems: 'center',
-            padding: '140px 32px 100px',
-            position: 'relative',
-            overflow: 'hidden',
-            background: 'linear-gradient(180deg, #fafbfc 0%, #f1f5f9 100%)'
-          }}>
-            {/* Animated Background Elements */}
-            <div className="floating-shape blob-animation" style={{
-              width: '600px',
-              height: '600px',
-              background: 'radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, transparent 70%)',
-              top: '-10%',
-              right: '-10%',
-            }} />
-            <div className="floating-shape blob-animation" style={{
-              width: '400px',
-              height: '400px',
-              background: 'radial-gradient(circle, rgba(139, 92, 246, 0.12) 0%, transparent 70%)',
-              bottom: '10%',
-              left: '-5%',
-              animationDelay: '4s'
-            }} />
-            {[...Array(8)].map((_, i) => (
-              <div
-                key={i}
-                className="floating-orb"
-                style={{
-                  width: `${Math.random() * 8 + 4}px`,
-                  height: `${Math.random() * 8 + 4}px`,
-                  background: i % 2 === 0 ? '#6366f1' : '#8b5cf6',
-                  top: `${Math.random() * 100}%`,
-                  left: `${Math.random() * 100}%`,
-                  animationDelay: `${i * 0.5}s`
-                }}
-              />
-            ))}
-            
+          <section id="hero" className="portfolio-hero">
             <div style={{
               maxWidth: '1280px',
               margin: '0 auto',
               width: '100%'
             }}>
-              <Row gutter={[80, 60]} align="middle">
+              <Row gutter={[{ xs: 12, sm: 24, lg: 40 }, 28]} align="middle">
                 <Col xs={24} lg={13}>
                   <div style={{
                     opacity: isVisible.hero ? 1 : 0,
@@ -1516,8 +1125,7 @@ const downloadResume = () => {
                     </div>
                     
                     {/* Main Title with Enhanced Typography */}
-                    <Title style={{
-                      fontSize: 'clamp(42px, 6vw, 68px)',
+                    <Title className="portfolio-hero-heading" style={{
                       fontWeight: '900',
                       lineHeight: '1.1',
                       color: '#0f172a',
@@ -1527,13 +1135,12 @@ const downloadResume = () => {
                       letterSpacing: '-2px',
                       fontFamily: "'Space Grotesk', sans-serif"
                     }}>
-                      Building AI-powered{' '}
-                      <span className="gradient-text">healthcare</span> solutions
+                      Java, Spring Boot &amp;{' '}
+                      <span className="gradient-text">React.js</span>
                     </Title>
                     
                     {/* Subtitle with Enhanced Styling */}
-                    <Paragraph style={{
-                      fontSize: '19px',
+                    <Paragraph className="portfolio-hero-summary" style={{
                       lineHeight: '1.8',
                       color: '#64748b',
                       maxWidth: '520px',
@@ -1542,12 +1149,11 @@ const downloadResume = () => {
                       opacity: 0,
                       fontWeight: '400'
                     }}>
-                      Full-Stack Engineer specializing in <strong style={{ color: '#475569' }}>HIPAA-compliant</strong> SaaS platforms, 
-                      conversational AI agents, and clinical workflow automation.
+                      {profileSummary}
                     </Paragraph>
                     
                     {/* Enhanced CTA Buttons */}
-                    <Space size={16} wrap style={{ marginBottom: '48px', animation: 'fadeInLeft 0.8s ease 0.5s forwards', opacity: 0 }}>
+                    <Space className="portfolio-hero-actions" size={12} wrap style={{ animation: 'fadeInLeft 0.8s ease 0.5s forwards', opacity: 0 }}>
                       <Button
                         className="btn-primary"
                         size="large"
@@ -1570,7 +1176,7 @@ const downloadResume = () => {
                         className="btn-outline"
                         size="large"
                         icon={<DownloadOutlined />}
-                        onClick={downloadResume}
+                        onClick={openResumeBuilder}
                         style={{
                           background: 'transparent',
                           border: '2px solid #e2e8f0',
@@ -1582,7 +1188,7 @@ const downloadResume = () => {
                           fontSize: '16px'
                         }}
                       >
-                        Download CV
+                        Resume Builder
                       </Button>
                     </Space>
                     
@@ -1621,146 +1227,19 @@ const downloadResume = () => {
                   </div>
                 </Col>
                 
-                {/* Enhanced Profile Card */}
                 <Col xs={24} lg={11}>
-                  <div style={{ 
-                    position: 'relative',
-                    animation: 'fadeInRight 1s ease 0.4s forwards',
-                    opacity: 0
-                  }}>
-                    {/* Decorative Elements */}
-                    <div className="animate-float" style={{
-                      position: 'absolute',
-                      top: '-30px',
-                      right: '-30px',
-                      width: '140px',
-                      height: '140px',
-                      borderRadius: '28px',
-                      background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.2) 0%, rgba(139, 92, 246, 0.15) 100%)',
-                      transform: 'rotate(12deg)',
-                      zIndex: 0
-                    }} />
-                    <div className="animate-rotate" style={{
-                      position: 'absolute',
-                      bottom: '-20px',
-                      left: '-20px',
-                      width: '80px',
-                      height: '80px',
-                      borderRadius: '20px',
-                      border: '3px solid rgba(99, 102, 241, 0.2)',
-                      transform: 'rotate(-12deg)',
-                      zIndex: 0
-                    }} />
-                    
-                    <Card
-                      className="card-hover visible glass-card animate-glow"
-                      style={{
-                        borderRadius: '32px',
-                        border: '1px solid rgba(255, 255, 255, 0.9)',
-                        boxShadow: '0 24px 72px rgba(0, 0, 0, 0.1)',
-                        overflow: 'hidden',
-                        position: 'relative'
-                      }}
-                      styles={{ body: { padding: 0 } }}
-                    >
-                      <div 
-                        className="profile-image"
-                        style={{
-                          width: '100%',
-                          height: '360px',
-                          background: `url(${info.photo}) center/cover no-repeat`,
-                          position: 'relative'
-                        }}
-                      >
-                        <div style={{
-                          position: 'absolute',
-                          bottom: 0,
-                          left: 0,
-                          right: 0,
-                          height: '180px',
-                          background: 'linear-gradient(transparent, rgba(0,0,0,0.7))'
-                        }} />
-                        {/* Floating Badge */}
-                        <div style={{
-                          position: 'absolute',
-                          top: '20px',
-                          right: '20px',
-                          background: 'rgba(255, 255, 255, 0.95)',
-                          backdropFilter: 'blur(20px)',
-                          padding: '12px 20px',
-                          borderRadius: '100px',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '8px',
-                          boxShadow: '0 8px 24px rgba(0, 0, 0, 0.15)'
-                        }}>
-                          <div className="animate-pulse" style={{
-                            width: '8px',
-                            height: '8px',
-                            borderRadius: '50%',
-                            background: '#10b981'
-                          }} />
-                          <Text style={{ fontSize: '13px', fontWeight: '700', color: '#059669' }}>
-                            Available
-                          </Text>
-                        </div>
-                      </div>
-                      
-                      <div style={{ padding: '32px 32px 28px' }}>
-                        <Title level={3} style={{ margin: '0 0 4px', fontWeight: '800', fontSize: '24px', letterSpacing: '-0.5px' }}>
-                          {info.name}
-                        </Title>
-                        <Text style={{ color: '#64748b', fontSize: '16px', fontWeight: '600' }}>{info.role}</Text>
-                        
-                        {/* Enhanced Stats Grid */}
-                        <div style={{
-                          display: 'grid',
-                          gridTemplateColumns: 'repeat(2, 1fr)',
-                          gap: '14px',
-                          marginTop: '28px'
-                        }}>
-                          {stats.map((stat, i) => (
-                            <div
-                              key={i}
-                              className="stat-card"
-                              style={{
-                                background: '#f8fafc',
-                                borderRadius: '18px',
-                                padding: '20px 16px',
-                                textAlign: 'center',
-                                cursor: 'default',
-                                border: '1px solid #f1f5f9',
-                                position: 'relative',
-                                overflow: 'hidden'
-                              }}
-                            >
-                              <div style={{
-                                fontSize: '24px',
-                                marginBottom: '8px',
-                                color: stat.color
-                              }}>
-                                {stat.icon}
-                              </div>
-                              <Text className="stat-number" style={{
-                                display: 'block',
-                                fontSize: '28px',
-                                fontWeight: '900',
-                                background: `linear-gradient(135deg, ${stat.color} 0%, ${stat.color}CC 100%)`,
-                                WebkitBackgroundClip: 'text',
-                                WebkitTextFillColor: 'transparent',
-                                letterSpacing: '-0.5px'
-                              }}>
-                                {stat.value}
-                              </Text>
-                              <Text style={{ fontSize: '12px', color: '#94a3b8', fontWeight: '700', letterSpacing: '0.3px', textTransform: 'uppercase' }}>
-                                {stat.label}
-                              </Text>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    </Card>
-                  </div>
+                  <figure className="hero-portrait">
+                    <div className="hero-portrait-scene" aria-hidden="true">
+                      <span className="hero-orbit hero-orbit-outer" />
+                      <span className="hero-orbit hero-orbit-inner" />
+                      <span className="hero-orbit-light" />
+                    </div>
+                    <img className="hero-portrait-image" src={info.photo} alt={`Portrait of ${info.name}`} width={1086} height={1448} fetchPriority="high" />
+                    <figcaption>
+                      <strong>{info.name}</strong>
+                      <span>{info.role}</span>
+                    </figcaption>
+                  </figure>
                 </Col>
               </Row>
             </div>
@@ -1768,13 +1247,13 @@ const downloadResume = () => {
 
           {/* About Section - Keep existing but with minor enhancements */}
           <section id="about" style={{
-            padding: 'clamp(80px, 12vw, 140px) 32px',
+            padding: 'var(--portfolio-section-padding)',
             background: '#fff'
           }}>
             <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
-              <div style={{ 
+              <div style={{
                 textAlign: 'center', 
-                marginBottom: '64px',
+                marginBottom: 'var(--portfolio-section-heading-gap)',
                 opacity: isVisible.about ? 1 : 0,
                 transform: isVisible.about ? 'translateY(0)' : 'translateY(30px)',
                 transition: 'all 0.8s ease'
@@ -1800,9 +1279,10 @@ const downloadResume = () => {
                 }}>
                   What I Do <span className="gradient-text">Best</span>
                 </Title>
+                <AboutIntroduction />
               </div>
 
-              <Row gutter={[28, 28]}>
+              <Row gutter={[{ xs: 12, sm: 20, lg: 28 }, { xs: 16, sm: 20, lg: 28 }]}>
                 <Col xs={24} lg={14}>
                   <Card
                     className={`card-hover glass-card ${isVisible.about ? 'visible' : ''}`}
@@ -1815,7 +1295,7 @@ const downloadResume = () => {
                       position: 'relative',
                       overflow: 'hidden'
                     }}
-                    styles={{ body: { padding: '40px' } }}
+                    styles={{ body: { padding: 'clamp(8px, 4vw, 40px)' } }}
                   >
                     {/* Gradient Overlay */}
                     <div style={{
@@ -1846,7 +1326,7 @@ const downloadResume = () => {
                     </div>
                     
                     <Title level={3} style={{ margin: '0 0 16px', fontWeight: '800', fontSize: '26px', letterSpacing: '-0.5px' }}>
-                      Healthcare Technology Expert
+                      Full-Stack Development
                     </Title>
                     
                     <Paragraph style={{
@@ -1855,14 +1335,12 @@ const downloadResume = () => {
                       margin: '0 0 24px',
                       fontSize: '16px'
                     }}>
-                      I specialize in developing <strong>HIPAA-compliant</strong> SaaS platforms, implementing conversational AI agents, 
-                      and building full-stack web applications. My expertise spans patient engagement systems, 
-                      clinical workflow automation, and medical records management, serving thousands of users daily.
+                      I work across Java and Spring Boot features and React.js interfaces. My portfolio includes patient intake and practice operations workflows.
                     </Paragraph>
                     
                     <div style={{ marginTop: '32px' }}>
                       <Space wrap size={[10, 10]}>
-                        {['HIPAA Compliant', 'AI/NLP', 'EHR/EMR Systems', 'HL7/FHIR', 'Cloud Native'].map((tag) => (
+                        {coreSkills.map((tag) => (
                           <Tag
                             key={tag}
                             className="tag-animated"
@@ -1886,7 +1364,7 @@ const downloadResume = () => {
                 </Col>
 
                 <Col xs={24} lg={10}>
-                  <Row gutter={[28, 28]}>
+                  <Row gutter={[{ xs: 12, sm: 20, lg: 28 }, { xs: 16, sm: 20, lg: 28 }]}>
                     <Col span={24}>
                       <Card
                         className={`card-hover glass-card-dark ${isVisible.about ? 'visible' : ''}`}
@@ -1925,7 +1403,7 @@ const downloadResume = () => {
                               fontSize: '15px', 
                               fontWeight: '700' 
                             }}>
-                              Oodles AI
+                              {work.company}
                             </Text>
                           </Col>
                           <Col>
@@ -1971,8 +1449,8 @@ const downloadResume = () => {
                         }}>
                           <ThunderboltOutlined style={{ fontSize: '26px', color: '#f59e0b' }} />
                         </div>
-                        <Title level={2} style={{ margin: '0 0 4px', color: '#0f172a', fontSize: '32px', fontWeight: '900' }}>70%</Title>
-                        <Text style={{ fontSize: '12px', color: '#64748b', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Workload Reduced</Text>
+                        <Title level={2} style={{ margin: '0 0 4px', color: '#0f172a', fontSize: '32px', fontWeight: '900' }}>Java</Title>
+                        <Text style={{ fontSize: '12px', color: '#64748b', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Backend development</Text>
                       </Card>
                     </Col>
                     
@@ -2000,8 +1478,8 @@ const downloadResume = () => {
                         }}>
                           <HeartOutlined style={{ fontSize: '26px', color: '#ec4899' }} />
                         </div>
-                        <Title level={2} style={{ margin: '0 0 4px', color: '#0f172a', fontSize: '32px', fontWeight: '900' }}>60%</Title>
-                        <Text style={{ fontSize: '12px', color: '#64748b', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Faster Onboarding</Text>
+                        <Title level={2} style={{ margin: '0 0 4px', color: '#0f172a', fontSize: '32px', fontWeight: '900' }}>React.js</Title>
+                        <Text style={{ fontSize: '12px', color: '#64748b', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Frontend development</Text>
                       </Card>
                     </Col>
                   </Row>
@@ -2010,18 +1488,15 @@ const downloadResume = () => {
             </div>
           </section>
 
-          {/* Experience, Skills, Projects, Education sections continue similarly with enhanced styling... */}
-          {/* Due to length, I'll include key sections. The pattern is the same - enhanced cards, better animations, improved typography */}
-          
-          {/* Skills Section with Progress Bars */}
+          {/* Skills Section */}
           <section id="skills" style={{
-            padding: 'clamp(80px, 12vw, 140px) 32px',
+            padding: 'var(--portfolio-section-padding)',
             background: '#f8fafc'
           }}>
             <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
               <div style={{ 
                 textAlign: 'center', 
-                marginBottom: '64px',
+                marginBottom: 'var(--portfolio-section-heading-gap)',
                 opacity: isVisible.skills ? 1 : 0,
                 transform: isVisible.skills ? 'translateY(0)' : 'translateY(30px)',
                 transition: 'all 0.8s ease'
@@ -2049,9 +1524,9 @@ const downloadResume = () => {
                 </Title>
               </div>
 
-              <Row gutter={[28, 28]}>
+              <Row gutter={[{ xs: 12, sm: 20, lg: 28 }, { xs: 16, sm: 20, lg: 28 }]}>
                 {skills.map((skill, i) => (
-                  <Col xs={12} sm={12} lg={6} key={i}>
+                  <Col xs={24} sm={12} lg={8} key={i}>
                     <Card
                       className={`card-hover skill-card ${isVisible.skills ? 'visible' : ''}`}
                       style={{
@@ -2105,24 +1580,6 @@ const downloadResume = () => {
                         {skill.name}
                       </Text>
                       
-                      {/* Skill level indicator */}
-                      <div style={{ marginBottom: '24px' }}>
-                        <Progress
-                          percent={skill.level}
-                          strokeColor={{
-                            '0%': skill.color,
-                            '100%': `${skill.color}CC`
-                          }}
-                          showInfo={false}
-                          strokeWidth={8}
-                          trailColor='#f1f5f9'
-                          style={{ marginBottom: '8px' }}
-                        />
-                        <Text style={{ fontSize: '12px', color: '#94a3b8', fontWeight: '700' }}>
-                          {skill.level}% Proficiency
-                        </Text>
-                      </div>
-                      
                       <Space direction="vertical" size={10} style={{ width: '100%' }}>
                         {skill.items.map((item, j) => (
                           <Tag
@@ -2153,13 +1610,13 @@ const downloadResume = () => {
 
           {/* Enhanced Projects Section with Modal */}
           <section id="projects" style={{
-            padding: 'clamp(80px, 12vw, 140px) 32px',
+            padding: 'var(--portfolio-section-padding)',
             background: '#fff'
           }}>
             <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
               <div style={{ 
                 textAlign: 'center', 
-                marginBottom: '64px',
+                marginBottom: 'var(--portfolio-section-heading-gap)',
                 opacity: isVisible.projects ? 1 : 0,
                 transform: isVisible.projects ? 'translateY(0)' : 'translateY(30px)',
                 transition: 'all 0.8s ease'
@@ -2187,7 +1644,7 @@ const downloadResume = () => {
                 </Title>
               </div>
 
-              <Row gutter={[28, 28]}>
+              <Row gutter={[{ xs: 12, sm: 20, lg: 28 }, { xs: 16, sm: 20, lg: 28 }]}>
                 {projects.map((project, i) => (
                   <Col xs={24} sm={12} key={i}>
                     <Card
@@ -2208,7 +1665,7 @@ const downloadResume = () => {
                         position: 'relative',
                         overflow: 'hidden'
                       }}
-                      styles={{ body: { padding: '36px' } }}
+                      styles={{ body: { padding: 'clamp(20px, 4vw, 36px)' } }}
                     >
                       {/* Hover gradient overlay */}
                       <div style={{
@@ -2252,32 +1709,6 @@ const downloadResume = () => {
                         {project.desc}
                       </Text>
                       
-                      {/* Metrics */}
-                      <div style={{
-                        display: 'flex',
-                        gap: '12px',
-                        marginBottom: '24px',
-                        flexWrap: 'wrap'
-                      }}>
-                        {project.metrics.map((metric, j) => (
-                          <Tag
-                            key={j}
-                            style={{
-                              background: `${project.color}08`,
-                              border: `1px solid ${project.color}20`,
-                              borderRadius: '8px',
-                              padding: '6px 12px',
-                              fontSize: '12px',
-                              color: project.color,
-                              margin: 0,
-                              fontWeight: '700'
-                            }}
-                          >
-                            {metric}
-                          </Tag>
-                        ))}
-                      </div>
-                      
                       <Space wrap size={[8, 8]} style={{ marginBottom: '24px' }}>
                         {project.tags.map((tag, j) => (
                           <Tag
@@ -2298,17 +1729,19 @@ const downloadResume = () => {
                         ))}
                       </Space>
                       
-                      <div style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        color: project.color,
-                        fontSize: '14px',
-                        fontWeight: '700'
-                      }}>
-                        <EyeOutlined style={{ marginRight: '8px', fontSize: '16px' }} />
+                      <Button
+                        type="text"
+                        icon={<EyeOutlined />}
+                        aria-label={`View details for ${project.title}`}
+                        style={{ color: project.color, fontWeight: 700 }}
+                        onClick={event => {
+                          event.stopPropagation();
+                          setSelectedProject(project);
+                          setProjectModalOpen(true);
+                        }}
+                      >
                         View Details
-                        <ArrowRightOutlined className="arrow-icon" style={{ marginLeft: '10px', fontSize: '12px' }} />
-                      </div>
+                      </Button>
                     </Card>
                   </Col>
                 ))}
@@ -2318,13 +1751,13 @@ const downloadResume = () => {
 
           {/* Experience Section */}
           <section id="experience" style={{
-            padding: 'clamp(80px, 12vw, 140px) 32px',
+            padding: 'var(--portfolio-section-padding)',
             background: '#f8fafc'
           }}>
             <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
               <div style={{ 
                 textAlign: 'center', 
-                marginBottom: '64px',
+                marginBottom: 'var(--portfolio-section-heading-gap)',
                 opacity: isVisible.experience ? 1 : 0,
                 transform: isVisible.experience ? 'translateY(0)' : 'translateY(30px)',
                 transition: 'all 0.8s ease'
@@ -2372,7 +1805,7 @@ const downloadResume = () => {
                     padding: '5px'
                   }} />
                   
-                  <div style={{ padding: '40px' }}>
+                  <div style={{ padding: 'clamp(18px, 4vw, 40px)' }}>
                     {/* Header Row */}
                     <Row gutter={[24, 24]} align="middle" style={{ marginBottom: '32px' }}>
                       <Col xs={24} lg={16}>
@@ -2440,12 +1873,6 @@ const downloadResume = () => {
                             }} />
                             {exp.duration}
                           </Tag>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'flex-end' }}>
-                            <EnvironmentOutlined style={{ color: '#94a3b8', fontSize: '16px' }} />
-                            <Text style={{ fontSize: '15px', color: '#64748b', fontWeight: '600' }}>
-                              {exp.location}
-                            </Text>
-                          </div>
                           <Text style={{ fontSize: '14px', color: '#94a3b8', fontWeight: '500' }}>
                             {exp.period}
                           </Text>
@@ -2472,7 +1899,7 @@ const downloadResume = () => {
                         marginBottom: '20px'
                       }}>
                         <TrophyOutlined style={{ marginRight: '8px', color: '#f59e0b' }} />
-                        Key Achievements
+                        Responsibilities
                       </Text>
                       <Space direction="vertical" size={14} style={{ width: '100%' }}>
                         {exp.achievements.map((achievement, j) => (
@@ -2543,14 +1970,14 @@ const downloadResume = () => {
 
           {/* Education Section */}
           <section id="education" style={{
-            padding: 'clamp(80px, 12vw, 140px) 32px',
+            padding: 'var(--portfolio-section-padding)',
             background: '#fff'
           }}>
             <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
-              <Row gutter={[60, 60]}>
-                <Col xs={24} lg={12} style={{
+              <Row gutter={[{ xs: 12, sm: 24, lg: 60 }, 24]}>
+                <Col xs={24} style={{
                   opacity: isVisible.education ? 1 : 0,
-                  transform: isVisible.education ? 'translateX(0)' : 'translateX(-30px)',
+                  transform: isVisible.education ? 'translateY(0)' : 'translateY(20px)',
                   transition: 'all 0.8s ease'
                 }}>
                   <Text style={{
@@ -2588,8 +2015,8 @@ const downloadResume = () => {
                         }}
                         styles={{ body: { padding: '24px 28px' } }}
                       >
-                        <Row justify="space-between" align="top">
-                          <Col flex="auto">
+                        <Row className="portfolio-education-row" gutter={[12, 10]} justify="space-between" align="top">
+                          <Col xs={24} sm={16}>
                             <Text style={{ fontWeight: '800', fontSize: '18px', display: 'block', color: '#0f172a', marginBottom: '4px' }}>
                               {edu.degree}
                             </Text>
@@ -2597,7 +2024,7 @@ const downloadResume = () => {
                               {edu.school}
                             </Text>
                           </Col>
-                          <Col style={{ textAlign: 'right' }}>
+                          <Col xs={24} sm={8} className="portfolio-education-score">
                             <Tag style={{
                               background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.12) 0%, rgba(139, 92, 246, 0.12) 100%)',
                               border: 'none',
@@ -2619,85 +2046,13 @@ const downloadResume = () => {
                   </Space>
                 </Col>
                 
-                <Col xs={24} lg={12} style={{
-                  opacity: isVisible.education ? 1 : 0,
-                  transform: isVisible.education ? 'translateX(0)' : 'translateX(30px)',
-                  transition: 'all 0.8s ease 0.2s'
-                }}>
-                  <Text style={{
-                    fontSize: '13px',
-                    fontWeight: '700',
-                    color: '#10b981',
-                    textTransform: 'uppercase',
-                    letterSpacing: '3px',
-                    display: 'block',
-                    marginBottom: '16px'
-                  }}>
-                    Certifications
-                  </Text>
-                  <Title level={2} style={{
-                    fontWeight: '900',
-                    margin: '0 0 32px',
-                    color: '#0f172a',
-                    fontSize: '36px',
-                    letterSpacing: '-1px',
-                    fontFamily: "'Space Grotesk', sans-serif"
-                  }}>
-                    Professional <span style={{
-                      background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-                      WebkitBackgroundClip: 'text',
-                      WebkitTextFillColor: 'transparent'
-                    }}>Credentials</span>
-                  </Title>
-                  
-                  <Space direction="vertical" size={14} style={{ width: '100%' }}>
-                    {certs.map((cert, i) => (
-                      <div
-                        key={i}
-                        className="cert-item"
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '18px',
-                          padding: '20px 24px',
-                          background: '#fff',
-                          borderRadius: '16px',
-                          cursor: 'default',
-                          border: '1px solid #f1f5f9',
-                          position: 'relative'
-                        }}
-                      >
-                        <div style={{
-                          width: '42px',
-                          height: '42px',
-                          borderRadius: '12px',
-                          background: 'rgba(16, 185, 129, 0.12)',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          flexShrink: 0
-                        }}>
-                          <SafetyCertificateOutlined style={{ color: '#10b981', fontSize: '20px' }} />
-                        </div>
-                        <div style={{ flex: 1 }}>
-                          <Text style={{ fontSize: '16px', fontWeight: '700', color: '#0f172a', display: 'block', marginBottom: '4px' }}>
-                            {cert.name}
-                          </Text>
-                          <Text style={{ fontSize: '13px', color: '#94a3b8', fontWeight: '600' }}>
-                            {cert.issuer} • {cert.year}
-                          </Text>
-                        </div>
-                      </div>
-                    ))}
-                  </Space>
-                </Col>
               </Row>
             </div>
           </section>
 
           {/* Contact Section */}
           <section id="contact" style={{
-            padding: 'clamp(80px, 12vw, 140px) 32px',
+            padding: 'var(--portfolio-section-padding)',
             background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
             position: 'relative',
             overflow: 'hidden'
@@ -2767,11 +2122,10 @@ const downloadResume = () => {
                 marginBottom: '48px',
                 lineHeight: '1.8'
               }}>
-                Have a healthcare project in mind? I'd love to hear about it and explore 
-                how we can work together to create something extraordinary.
+                Have a full-stack project in mind? I'd love to hear about it and explore how we can work together to create something extraordinary.
               </Paragraph>
               
-              <Space size={16} wrap style={{ justifyContent: 'center', marginBottom: '48px' }}>
+              <Space className="portfolio-contact-actions" size={12} wrap>
                 <Button
                   className="btn-primary"
                   size="large"
@@ -2819,7 +2173,7 @@ const downloadResume = () => {
                 </Button>
               </Space>
               
-              <div style={{ display: 'flex', justifyContent: 'center', gap: '14px' }}>
+              <div style={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap', gap: '12px' }}>
                 {[
                   { icon: <GithubOutlined />, label: 'GitHub', onClick: () => window.open('https://github.com/ErSahjaan', '_blank') },
                   { icon: <LinkedinOutlined />, label: 'LinkedIn', onClick: () => window.open('https://www.linkedin.com/in/er-md-sahjaan-4a33b1247', '_blank') },
@@ -2854,11 +2208,11 @@ const downloadResume = () => {
         </Content>
 
         {/* Enhanced Footer */}
-        <Footer style={{
+        <Footer className="portfolio-footer" style={{
           textAlign: 'center',
           background: '#0f172a',
           borderTop: '1px solid rgba(99, 102, 241, 0.15)',
-          padding: '40px 32px'
+          padding: '32px var(--portfolio-gutter)'
         }}>
           <Space direction="vertical" size={12}>
             <Text style={{ color: '#64748b', fontSize: '15px', fontWeight: '600' }}>
@@ -2883,12 +2237,7 @@ const downloadResume = () => {
 
         {/* Enhanced Chat Widget */}
         {chatOpen && (
-          <div className="animate-float" style={{
-            position: 'fixed',
-            bottom: '100px',
-            right: '28px',
-            width: '380px',
-            maxWidth: 'calc(100vw - 56px)',
+          <div className="portfolio-chat-panel" id="portfolio-chat" aria-label="Portfolio chat" style={{
             borderRadius: '20px',
             boxShadow: '0 24px 72px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(0, 0, 0, 0.05)',
             background: '#fff',
@@ -2897,9 +2246,8 @@ const downloadResume = () => {
             animation: 'scaleIn 0.3s cubic-bezier(0.23, 1, 0.32, 1)'
           }}>
             {/* Enhanced Header */}
-            <div style={{
+            <div className="portfolio-chat-header" style={{
               background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
-              padding: '24px',
               color: '#fff',
               position: 'relative',
               overflow: 'hidden'
@@ -2956,11 +2304,8 @@ const downloadResume = () => {
 
             {/* Chat Body */}
             <div
+              className="portfolio-chat-messages"
               style={{
-                padding: "24px",
-                minHeight: "320px",
-                maxHeight: "400px",
-                overflowY: "auto",
                 background: "#f8fafc",
               }}
               ref={chatBodyRef}
@@ -2985,7 +2330,7 @@ const downloadResume = () => {
                     <Text style={{ fontWeight: '700', color: '#0f172a' }}>Sahjaan Bot</Text>
                   </div>
                   <Text style={{ fontSize: "15px", color: "#374151", lineHeight: "1.7", display: 'block' }}>
-                    Hi there! I'm Sahjaan 👋 a software engineer specializing in healthcare technology. 
+                    Hi there! I'm Sahjaan, a Java and React.js full-stack developer.
                     How can I help you today?
                   </Text>
 
@@ -3032,7 +2377,7 @@ const downloadResume = () => {
 
                     <Button
                       block
-                      onClick={downloadResume}
+                      onClick={openResumeBuilder}
                       icon={<DownloadOutlined />}
                       style={{
                         border: "1px solid #3b82f6",
@@ -3043,7 +2388,7 @@ const downloadResume = () => {
                         background: "transparent",
                       }}
                     >
-                      View Resume
+                      Open Resume Builder
                     </Button>
                   </div>
                 </div>
@@ -3099,8 +2444,8 @@ const downloadResume = () => {
 
             {/* Enhanced Footer */}
             <div
+              className="portfolio-chat-compose"
               style={{
-                padding: "20px 24px",
                 borderTop: "1px solid #f1f5f9",
                 background: "#fff",
               }}
@@ -3114,6 +2459,7 @@ const downloadResume = () => {
                   className="form-input-enhanced"
                   style={{
                     flex: 1,
+                    minWidth: 0,
                     borderRadius: "14px",
                     border: "1px solid #e2e8f0",
                     padding: "14px 16px",
@@ -3147,19 +2493,14 @@ const downloadResume = () => {
         )}
 
         {/* Enhanced Floating Action Buttons */}
-        <div style={{
-          position: 'fixed',
-          bottom: '28px',
-          right: '28px',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '14px',
-          zIndex: 1000
-        }}>
+        <div className="portfolio-floating-actions">
           <Tooltip title={chatOpen ? "Close chat" : "Chat with us"} placement="left">
             <Button
               onClick={() => setChatOpen(!chatOpen)}
-              className={chatOpen ? "" : "animate-pulse"}
+              className="portfolio-chat-toggle"
+              aria-label={chatOpen ? "Close chat" : "Open chat"}
+              aria-expanded={chatOpen}
+              aria-controls={chatOpen ? "portfolio-chat" : undefined}
               style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -3192,11 +2533,13 @@ const downloadResume = () => {
               }}>
                 {chatOpen ? <ArrowDownOutlined style={{ fontSize: '20px' }} /> : <MessageOutlined style={{ fontSize: '20px' }} />}
               </div>
-              {chatOpen ? 'Close' : 'Chat Now'}
+              <span className="portfolio-chat-toggle-label">{chatOpen ? 'Close' : 'Chat Now'}</span>
             </Button>
           </Tooltip>
           <Tooltip title="Back to Top" placement="left">
             <Button
+              className="portfolio-back-to-top"
+              aria-label="Back to top"
               shape="circle"
               icon={<ArrowUpOutlined style={{ fontSize: '18px' }} />}
               onClick={() => scrollTo('hero')}
@@ -3215,8 +2558,11 @@ const downloadResume = () => {
           </Tooltip>
         </div>
 
+        {resumeOpen && <ResumeBuilder profile={info} close={() => setResumeOpen(false)} />}
+
         {/* Contact Modal */}
         <Modal
+          className="portfolio-form-dialog"
           open={contactModalOpen}
           onCancel={() => setContactModalOpen(false)}
           footer={null}
@@ -3335,6 +2681,7 @@ const downloadResume = () => {
 
         {/* Project Details Modal */}
         <Modal
+          className="portfolio-form-dialog"
           open={projectModalOpen}
           onCancel={() => setProjectModalOpen(false)}
           footer={null}
@@ -3367,42 +2714,26 @@ const downloadResume = () => {
                 </Title>
                 
                 <Text style={{ color: '#64748b', fontSize: '16px', lineHeight: '1.8', display: 'block', marginBottom: '24px' }}>
-                  {selectedProject.longDesc}
+                  {selectedProject.longDesc || selectedProject.desc}
                 </Text>
-                
-                {/* Metrics */}
-                <div style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(3, 1fr)',
-                  gap: '16px',
-                  marginBottom: '24px'
-                }}>
-                  {selectedProject.metrics.map((metric, i) => (
-                    <Card
-                      key={i}
-                      style={{
-                        textAlign: 'center',
-                        borderRadius: '14px',
-                        border: `1px solid ${selectedProject.color}20`,
-                        background: `${selectedProject.color}08`
-                      }}
-                      styles={{ body: { padding: '16px' } }}
-                    >
-                      <Text style={{
-                        fontSize: '24px',
-                        fontWeight: '900',
-                        color: selectedProject.color,
-                        display: 'block',
-                        marginBottom: '4px'
-                      }}>
-                        {metric.split(' ')[0]}
-                      </Text>
-                      <Text style={{ fontSize: '12px', color: '#64748b', fontWeight: '600' }}>
-                        {metric.split(' ').slice(1).join(' ')}
-                      </Text>
-                    </Card>
-                  ))}
-                </div>
+                {selectedProject.details && (
+                  <ul style={{ color: '#475569', lineHeight: '1.8', paddingInlineStart: '22px' }}>
+                    {selectedProject.details.map(detail => <li key={detail}>{detail}</li>)}
+                  </ul>
+                )}
+                {selectedProject.services && (
+                  <section style={{ marginBottom: '24px' }} aria-labelledby="proposed-services-heading">
+                    <Title id="proposed-services-heading" level={4}>Proposed services</Title>
+                    <dl style={{ color: '#475569', lineHeight: '1.7', margin: 0 }}>
+                      {selectedProject.services.map(service => (
+                        <div key={service.name} style={{ marginBottom: '12px' }}>
+                          <dt><strong>{service.name}</strong></dt>
+                          <dd style={{ margin: 0 }}>{service.examples}</dd>
+                        </div>
+                      ))}
+                    </dl>
+                  </section>
+                )}
                 
                 {/* Technologies */}
                 <div style={{ marginBottom: '24px' }}>
@@ -3415,7 +2746,7 @@ const downloadResume = () => {
                     display: 'block',
                     marginBottom: '12px'
                   }}>
-                    Technologies Used
+                    {selectedProject.details ? 'Design & Research' : 'Technologies Used'}
                   </Text>
                   <Space wrap size={[8, 8]}>
                     {selectedProject.tags.map((tag, j) => (
