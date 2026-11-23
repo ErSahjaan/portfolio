@@ -229,8 +229,8 @@ export default function ResumeBuilder({ initialDraft, close, openPortfolioBuilde
     <Modal className="portfolio-form-dialog resume-editor-dialog" open title="ATS Resume Builder" onCancel={close} width={920} footer={
       <>
         {error && <p className="resume-builder-error" role="alert">{error}</p>}
-        <Space wrap>
-          <Space.Compact>
+        <div className="resume-builder-actions">
+          <Space.Compact className="resume-builder-portfolio-action">
             <Button onClick={() => openPortfolioBuilder({ resume, isSample, customFields }, isSample ? undefined : {
               name: resume.name,
               role: resume.role,
@@ -242,12 +242,12 @@ export default function ResumeBuilder({ initialDraft, close, openPortfolioBuilde
               content="Create a separate portfolio page with your details and images, then share its link."
               placement="top"
             >
-              <Button aria-label="About Get Portfolio Link" icon={<InfoCircleOutlined />} />
+              <Button className="resume-builder-info" aria-label="About Get Portfolio Link" icon={<InfoCircleOutlined />} />
             </Popover>
           </Space.Compact>
           <Button onClick={() => exportAs('txt')}>Download TXT</Button>
           <Button type="primary" onClick={() => exportAs('pdf')}>Download PDF</Button>
-        </Space>
+        </div>
       </>
     }>
       <div className="resume-builder-toolbar">
