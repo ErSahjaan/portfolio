@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import portrait from './assets/images/hero-portrait-cutout.png';
-import ResumeBuilder, { additionalSkills, coreSkills, degree, profileRole, profileSummary, work } from './ResumeBuilder';
+import ResumeBuilder, { additionalSkills, certifications, coreSkills, degree, profileRole, profileSummary, PublishedResume, work } from './ResumeBuilder';
+import { useNavigate } from 'react-router-dom';
 import { projectConcepts } from './projectConcepts';
 import AboutIntroduction from './AboutIntroduction';
 import { Layout, Card, Row, Col, Tag, Typography, Button, Space, Tooltip, Drawer, Input, Form, notification, Modal, Avatar } from 'antd';
@@ -17,7 +18,6 @@ import {
   GlobalOutlined,
   ApiOutlined,
   AppstoreOutlined,
-  DownloadOutlined,
   ArrowUpOutlined,
   WhatsAppOutlined,
   MenuOutlined,
@@ -683,12 +683,13 @@ const enhancedStyleSheet = `
   }
 `;
 
-export default function EnhancedPortfolio() {
+export default function EnhancedPortfolio({ initialResumeDraft, onOpenPortfolioBuilder, onCloseResume }) {
+  const navigate = useNavigate();
   const [isVisible, setIsVisible] = useState({});
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
-  const [resumeOpen, setResumeOpen] = useState(false);
+  const [resumeMode, setResumeMode] = useState(initialResumeDraft ? 'builder' : null);
   const [contactModalOpen, setContactModalOpen] = useState(false);
   const [projectModalOpen, setProjectModalOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState(null);
@@ -866,7 +867,6 @@ export default function EnhancedPortfolio() {
 
   const education = [degree];
   const experience = [work];
-  const openResumeBuilder = () => setResumeOpen(true);
 
   const navItems = ['About', 'Experience', 'Skills', 'Projects', 'Education', 'Contact'];
 
@@ -1175,8 +1175,8 @@ export default function EnhancedPortfolio() {
                       <Button
                         className="btn-outline"
                         size="large"
-                        icon={<DownloadOutlined />}
-                        onClick={openResumeBuilder}
+                        icon={<EyeOutlined />}
+                        onClick={() => setResumeMode('published')}
                         style={{
                           background: 'transparent',
                           border: '2px solid #e2e8f0',
@@ -1188,7 +1188,10 @@ export default function EnhancedPortfolio() {
                           fontSize: '16px'
                         }}
                       >
-                        Resume Builder
+                        View my resume
+                      </Button>
+                      <Button size="large" onClick={() => setResumeMode('builder')}>
+                        Build your own resume
                       </Button>
                     </Space>
                     
@@ -1876,6 +1879,9 @@ export default function EnhancedPortfolio() {
                           <Text style={{ fontSize: '14px', color: '#94a3b8', fontWeight: '500' }}>
                             {exp.period}
                           </Text>
+                          <Text style={{ fontSize: '14px', color: '#475569' }}>
+                            {exp.companyLocation} · {exp.workArrangement}
+                          </Text>
                         </div>
                       </Col>
                     </Row>
@@ -2044,6 +2050,12 @@ export default function EnhancedPortfolio() {
                       </Card>
                     ))}
                   </Space>
+                  <Title level={3} style={{ margin: '32px 0 16px', color: '#0f172a' }}>
+                    Certifications
+                  </Title>
+                  <ul className="portfolio-certifications">
+                    {certifications.map(certification => <li key={certification}>{certification}</li>)}
+                  </ul>
                 </Col>
                 
               </Row>
@@ -2377,8 +2389,11 @@ export default function EnhancedPortfolio() {
 
                     <Button
                       block
-                      onClick={openResumeBuilder}
-                      icon={<DownloadOutlined />}
+                      onClick={() => {
+                        setChatOpen(false);
+                        setResumeMode('published');
+                      }}
+                      icon={<EyeOutlined />}
                       style={{
                         border: "1px solid #3b82f6",
                         borderRadius: "10px",
@@ -2388,7 +2403,7 @@ export default function EnhancedPortfolio() {
                         background: "transparent",
                       }}
                     >
-                      Open Resume Builder
+                      View my resume
                     </Button>
                   </div>
                 </div>
@@ -2558,7 +2573,14 @@ export default function EnhancedPortfolio() {
           </Tooltip>
         </div>
 
-        {resumeOpen && <ResumeBuilder profile={info} close={() => setResumeOpen(false)} />}
+        {resumeMode === 'published' && <PublishedResume profile={info} close={() => setResumeMode(null)} />}
+        {resumeMode === 'builder' && <ResumeBuilder initialDraft={initialResumeDraft} close={() => {
+          setResumeMode(null);
+          onCloseResume();
+        }} openPortfolioBuilder={(resumeDraft, seed) => {
+          onOpenPortfolioBuilder({ resumeDraft, seed });
+          navigate('/portfolio/build');
+        }} />}
 
         {/* Contact Modal */}
         <Modal

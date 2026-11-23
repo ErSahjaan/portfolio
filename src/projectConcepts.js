@@ -16,10 +16,15 @@ export const projectConcepts = [
   },
   {
     title: 'Seemanchal Health Connect',
-    desc: 'A doctor and clinic marketplace concept for finding local care by specialty, location, consultation fee, and availability.',
+    desc: 'A marketplace concept for finding doctors and clinics by specialty, location, consultation fee, and availability.',
+    services: [
+      { name: 'Remote telehealth', examples: 'Book video consultations or follow-up appointments with participating clinicians.' },
+      { name: 'Caregiver home visits', examples: 'Request scheduled, non-emergency home visits for older adults who need help with daily activities or companionship.' },
+    ],
     details: [
       'Mapped the patient journey from doctor search and clinic profile review through appointment booking, confirmation, and reminders.',
       'Defined a clinic dashboard for managing doctor profiles, consultation slots, and appointment requests.',
+      'Proposed remote video consultations and scheduled caregiver home visits for older adults.',
     ],
     tags: ['Product Concept', 'Patient Journey', 'Clinic Dashboard'],
   },

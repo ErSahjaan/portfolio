@@ -52,6 +52,67 @@
   align-items: start;
 }
 
+.resume-editor-dialog.ant-modal {
+  top: 16px;
+  padding-bottom: 0;
+}
+
+.resume-editor-dialog .ant-modal-content {
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100dvh - 32px);
+}
+
+.resume-editor-dialog .ant-modal-header,
+.resume-editor-dialog .ant-modal-footer {
+  flex: none;
+}
+
+.resume-editor-dialog .ant-modal-body {
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.resume-custom-field {
+  min-inline-size: 0;
+  margin: 0 0 16px;
+  padding: 12px 14px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+}
+
+.resume-custom-field legend {
+  margin: 0;
+  padding-inline: 6px;
+  color: #334155;
+  font-weight: 650;
+}
+
+.resume-builder-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 12px 0 20px;
+  padding: 12px 14px;
+  border: 1px solid #e0e7ff;
+  border-radius: 12px;
+  background: #f5f7ff;
+  color: #252b50;
+}
+
+.resume-builder-toolbar p {
+  margin: 4px 0 0;
+  color: #475569;
+}
+
+.resume-builder-error {
+  color: #b91c1c;
+  text-align: start;
+}
+
 .resume-builder-preview {
   background: #f8fafc;
   border: 1px solid #e2e8f0;
@@ -61,10 +122,37 @@
   white-space: pre-wrap;
 }
 
+.published-resume-preview {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.published-resume-watermark {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  display: grid;
+  align-items: center;
+  justify-items: center;
+  pointer-events: none;
+}
+
+.published-resume-watermark span {
+  color: #4338ca;
+  opacity: .25;
+  font-size: clamp(.8rem, 3.5vw, 1.65rem);
+  font-weight: 850;
+  letter-spacing: .06em;
+  white-space: nowrap;
+  transform: rotate(-19deg);
+}
+
 @media (max-width: 720px) {
   .resume-builder-grid {
     grid-template-columns: minmax(0, 1fr);
   }
+
 }
 
 .portfolio-hero {
@@ -236,6 +324,23 @@
 
 .portfolio-education-score {
   text-align: right;
+}
+
+.portfolio-certifications {
+  display: grid;
+  gap: 10px;
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 0;
+  list-style: none;
+}
+
+.portfolio-certifications li {
+  padding: 12px 16px;
+  color: #334155;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
 }
 
 .portfolio-floating-actions {
