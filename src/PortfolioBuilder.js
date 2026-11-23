@@ -322,7 +322,7 @@ function PublishedLinkModal({ publication, profile, close }) {
       </Space>
     }>
       <p>{publication.local
-        ? 'This localhost preview works for 60 minutes in this development server, or until the server restarts.'
+        ? 'This localhost preview works for up to 60 minutes and can only be opened on this machine.'
         : 'Anyone with this temporary link can view your portfolio for 60 minutes after submission.'}</p>
       <Form.Item label="Temporary portfolio link" htmlFor="temporary-portfolio-link">
         <Input id="temporary-portfolio-link" readOnly ref={input} value={publication.url} onFocus={event => event.target.select()} />

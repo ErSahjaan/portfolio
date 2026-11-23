@@ -114,7 +114,10 @@ async function handle(req, res, development) {
   try {
     const origin = new URL(development?.origin || process.env.PORTFOLIO_PUBLIC_ORIGIN);
     if ((!development && origin.protocol !== 'https:') || origin.username || origin.password) throw new Error('Invalid public origin');
-    const storage = development?.storage || redis;
+    const developmentRedis = development && process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN;
+    const storage = developmentRedis
+      ? (command, storageKey, ...args) => redis(command, 'development:' + storageKey, ...args)
+      : development?.storage || redis;
     const schema = await import('../src/portfolioPublishing.mjs');
     const shareUrl = (profile, id) => {
       const url = new URL(schema.publicAddress(profile), origin);

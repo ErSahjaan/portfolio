@@ -23,3 +23,5 @@ Deploy the Vercel function with the site. Submitting publishes the portfolio for
 The result dialog uses the verified [FormSubmit Email Link](https://formsubmit.co/el/xekeri). **Send details to owner** opens a prefilled form for the visitor to review and send. If FormSubmit provides a separate activated AJAX endpoint, the optional server-only `PORTFOLIO_SUBMISSION_ENDPOINT` can forward submissions automatically. Uploaded image files are available through the temporary portfolio link.
 
 After restarting `npm start`, localhost can generate 60-minute previews in memory and open the same FormSubmit email form. The localhost preview expires on restart and only works on the machine running the development server. Public share links and optional email copies to visitors require a configured Vercel deployment.
+
+For local Redis testing, fill in `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` in the ignored `.env` file and restart `npm start`. When both are set, local previews use a separate development key namespace in Upstash. Vercel Production still uses the values saved in its project settings.
