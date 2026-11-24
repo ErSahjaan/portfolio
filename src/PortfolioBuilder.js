@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Button, Form, Input, Modal, Popconfirm, Select, Space } from 'antd';
 import { Link, useLocation } from 'react-router-dom';
 import samplePortrait from './assets/images/taylor-bennett-sample.png';
-import { emailPattern, imageAccept, maxImageLength, portfolioColor, publicAddress, slugPattern, tokenPattern, uploadedImage } from './portfolioPublishing.mjs';
+import { educationLimits, educationText, emailPattern, imageAccept, maxEducationEntries, maxImageLength, portfolioColor, publicAddress, slugPattern, tokenPattern, uploadedImage } from './portfolioPublishing.mjs';
 import './PortfolioBuilder.css';
 
 const themes = [
@@ -20,18 +20,34 @@ const sampleProfile = {
   sample: true,
   name: 'Taylor Bennett',
   role: 'Full-Stack Software Developer',
-  headline: 'Java, Spring Boot & React',
+  headline: 'I build and maintain web tools for facilities and inventory teams.',
   location: 'Austin, Texas, United States',
   availability: 'Open to full-stack opportunities',
-  biography: 'I build internal web applications that help teams manage requests, find the information they need, and spend less time switching between tools.',
-  experience: 'Software Developer | Blue Mesa Tools (Fictional) | August 2023 - Present\nBuilt Spring Boot REST endpoints for service requests and search. Developed React forms with validation and added JUnit integration tests for key workflows.',
-  education: 'B.S. in Computer Science | Example State University (Fictional) | May 2023',
-  skills: 'Java, Spring Boot, React, TypeScript, PostgreSQL, REST APIs, JUnit, Git',
+  biography: 'I’m a full-stack developer based in Austin, Texas, with three years of experience building web applications for operations teams. I use Java and Spring Boot for APIs, React and TypeScript for interfaces, and PostgreSQL for data.\n\nI enjoy turning manual handoffs into clear workflows: who owns a request, what happens next, and what users can do when something goes wrong.',
+  experience: [
+    'Software Developer | Blue Mesa Tools (Fictional) | Austin, TX | August 2023 - Present',
+    '',
+    '• Built Spring Boot APIs and React screens for maintenance requests, technician assignments, and status updates.',
+    '• Added PostgreSQL search filters, pagination, and indexes so coordinators could find requests by site and status.',
+    '• Wrote integration tests for access rules, invalid requests, and job completion. Reviewed pull requests and helped verify release fixes.',
+  ].join('\n'),
+  educationEntries: [{ label: 'Bachelor of Science in Computer Science', details: 'Example State University (Fictional) | Austin, TX | May 2023\nCoursework included databases, software engineering, and data structures.' }],
+  skills: 'Java, Spring Boot, React, TypeScript, PostgreSQL, REST APIs, JUnit, React Testing Library, Git, GitHub Actions',
   email: 'taylor.bennett@example.com',
   photo: samplePortraitKey,
   projects: [
-    { title: 'Service Request Dashboard', description: 'A React and Spring Boot tool that lets facilities teams create, assign, and track maintenance requests.' },
-    { title: 'Inventory Search API', description: 'A Java and PostgreSQL API for filtering inventory records by availability, category, and location, with integration tests.' },
+    {
+      title: 'Service Request Dashboard',
+      description: 'Facilities coordinators needed one place to see who owned each maintenance request. I built a searchable queue in React and a Spring Boot API for assignment, status history, and closure. Requesters can track progress, and coordinators can filter open work by site.\n\nStack: React, TypeScript, Spring Boot, PostgreSQL',
+    },
+    {
+      title: 'Inventory Search API',
+      description: 'Warehouse staff needed to find available parts across locations. I built an API with combined stock, category, and location filters, documented example requests, and added integration tests for empty results and invalid filters.\n\nStack: Java, Spring Boot, PostgreSQL, JUnit',
+    },
+    {
+      title: 'Shift Handoff Board',
+      description: 'A prototype for supervisors passing open work to the next shift. I designed a board that shows the owner, priority, and next action for each item, and built a React form for recording handoff notes.\n\nStack: React, TypeScript, React Testing Library',
+    },
   ],
 };
 
@@ -57,6 +73,10 @@ function portraitSource(value, isSample) {
 function normalize(data) {
   return {
     ...limitedStrings(data, profileLimits),
+    educationEntries: Array.isArray(data?.educationEntries)
+      ? data.educationEntries.slice(0, maxEducationEntries).map(entry => limitedStrings(entry, educationLimits))
+        .filter(entry => entry.label || entry.details)
+      : [],
     sample: data?.sample === true,
     photoUpload: uploadedImage(data?.photoUpload),
     accent: portfolioColor(data?.accent),
@@ -70,7 +90,15 @@ function normalize(data) {
 
 function editableProfile(data) {
   const profile = normalize(data);
-  return { ...profile, projects: profile.projects.map((project, id) => ({ ...project, id })) };
+  const educationEntries = profile.education
+    ? [{ label: '', details: profile.education }, ...profile.educationEntries].slice(0, maxEducationEntries)
+    : profile.educationEntries;
+  return {
+    ...profile,
+    education: '',
+    educationEntries: educationEntries.map((entry, id) => ({ ...entry, id })),
+    projects: profile.projects.map((project, id) => ({ ...project, id })),
+  };
 }
 
 function validate(profile) {
@@ -111,7 +139,7 @@ function PortfolioPreview({ profile }) {
     ['Experience', profile.experience, experienceSection],
     ['Skills', skills.length, skillSection],
     ['Projects', profile.projects.length, projectSection],
-    ['Education', profile.education, educationSection],
+    ['Education', profile.education || profile.educationEntries.length, educationSection],
     ['Contact', canContact || website || linkedin, contactSection],
   ];
   return (
@@ -135,18 +163,21 @@ function PortfolioPreview({ profile }) {
         <div className="custom-hero-scene" aria-hidden="true">
           <span className="custom-hero-glow custom-hero-glow-main" />
           <span className="custom-hero-glow custom-hero-glow-secondary" />
-          <span className="custom-hero-ring custom-hero-ring-outer" />
-          <span className="custom-hero-ring custom-hero-ring-inner" />
+          <span className="custom-hero-ring custom-hero-ring-outer"><span className="custom-hero-current" /></span>
+          <span className="custom-hero-ring custom-hero-ring-inner"><span className="custom-hero-current" /></span>
         </div>
         <div className={'custom-portfolio-boundary custom-portfolio-intro' + (photo ? ' has-portrait' : '')}>
-          <div>
+          <div className="custom-portfolio-intro-copy">
             {profile.sample && <p className="custom-portfolio-sample">Fictional example</p>}
-            {profile.availability && <p className="custom-portfolio-availability">{profile.availability}</p>}
             <p className="custom-portfolio-role">{profile.role || 'Your professional title'}</p>
             <h1>{profile.name || 'Your name'}</h1>
             {profile.headline && <p className="custom-portfolio-headline">{profile.headline}</p>}
-            {profile.location && <p className="custom-portfolio-bio">{profile.location}</p>}
-            {(canContact || website || linkedin) && <div className="custom-portfolio-links">
+            {(profile.location || profile.availability) && <div className="custom-portfolio-meta">
+              {profile.location && <p className="custom-portfolio-bio">{profile.location}</p>}
+              {profile.availability && <p className="custom-portfolio-availability">{profile.availability}</p>}
+            </div>}
+            {(profile.projects.length > 0 || canContact || website || linkedin) && <div className="custom-portfolio-links">
+              {profile.projects.length > 0 && <button type="button" onClick={() => projectSection.current?.scrollIntoView()}>View projects <span aria-hidden="true">↓</span></button>}
               {canContact && <a href={'mailto:' + profile.email}>Get in touch</a>}
               {website && <a href={website} target="_blank" rel="noreferrer">Professional website</a>}
               {linkedin && <a href={linkedin} target="_blank" rel="noreferrer">LinkedIn</a>}
@@ -171,12 +202,27 @@ function PortfolioPreview({ profile }) {
       {profile.projects.length > 0 && <section className="custom-portfolio-section custom-portfolio-work" ref={projectSection}><div className="custom-portfolio-boundary"><h2>Projects</h2><div className="custom-portfolio-projects">
         {profile.projects.map((project, index) => <article className="custom-portfolio-project" key={index}>
           {(project.imageUpload || project.image) && <SafeImage key={project.imageUpload || project.image} src={project.imageUpload || webLink(project.image)} alt={project.title ? project.title + ' project image' : 'Project image'} className="custom-portfolio-project-image" />}
-          <h3>{project.title || 'Project title'}</h3>
-          {project.description && <p>{project.description}</p>}
-          {webLink(project.url) && <a href={webLink(project.url)} target="_blank" rel="noreferrer">View project</a>}
+          <div className="custom-portfolio-project-copy">
+            <h3>{project.title || 'Project title'}</h3>
+            {project.description && <p>{project.description}</p>}
+            {webLink(project.url) && <a href={webLink(project.url)} target="_blank" rel="noreferrer" aria-label={project.title ? 'View project: ' + project.title : undefined}>View project <span aria-hidden="true">↗</span></a>}
+          </div>
         </article>)}
       </div></div></section>}
-      {profile.education && <section className="custom-portfolio-section" ref={educationSection}><div className="custom-portfolio-boundary"><h2>Education</h2><p className="custom-portfolio-copy">{profile.education}</p></div></section>}
+      {(profile.education || profile.educationEntries.length > 0) && (
+        <section className="custom-portfolio-section" ref={educationSection}>
+          <div className="custom-portfolio-boundary">
+            <h2>Education</h2>
+            {profile.education && <p className="custom-portfolio-copy">{profile.education}</p>}
+            {profile.educationEntries.map(({ label, details }, index) => (
+              <div className="custom-portfolio-education-entry" key={index}>
+                {label && <h3>{label}</h3>}
+                {details && <p className="custom-portfolio-copy">{details}</p>}
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
       {(canContact || website || linkedin) && <section className="custom-portfolio-section custom-portfolio-work" ref={contactSection}><div className="custom-portfolio-boundary">
         <h2>Contact</h2>
         <div className="custom-portfolio-links">
@@ -193,7 +239,7 @@ const profileFields = [
   ['name', 'Full name'], ['role', 'Professional title'], ['headline', 'Hero headline'],
   ['location', 'Location'], ['availability', 'Availability message'], ['biography', 'About you', 3],
   ['experience', 'Work experience', 5], ['skills', 'Skills (comma or line separated)', 2],
-  ['education', 'Education', 2], ['email', 'Public contact email'],
+  ['educationEntries', 'Education'], ['email', 'Public contact email'],
   ['linkedin', 'LinkedIn URL'], ['website', 'Professional website URL'],
 ];
 const projectFields = [
@@ -283,7 +329,7 @@ function PublishedLinkModal({ publication, profile, close }) {
     ['Portfolio', publication.url], ['Name', profile.name], ['Role', profile.role],
     ['Location', profile.location], ['Headline', profile.headline], ['Availability', profile.availability],
     ['Email', profile.email], ['LinkedIn', profile.linkedin], ['Website', profile.website],
-    ['About', profile.biography], ['Experience', profile.experience], ['Education', profile.education],
+    ['About', profile.biography], ['Experience', profile.experience], ['Education', educationText(profile)],
     ['Skills', profile.skills],
     ['Projects', profile.projects.map(project => [project.title, project.description, project.url, project.image].filter(Boolean).join(' | ')).join('\n')],
   ].filter(([, value]) => value).map(([label, value]) => label + ': ' + value).join('\n\n');
@@ -367,6 +413,7 @@ function EditableField({ field, prefix, value, update, limits, placeholder }) {
 export default function PortfolioBuilder({ seed, returnToResume }) {
   const [draft, setDraft] = useState(() => editableProfile(seed?.name?.trim() || seed?.role?.trim() ? seed : sampleProfile));
   const nextProjectId = useRef(maxProjects);
+  const nextEducationId = useRef(maxEducationEntries);
   const [publication, setPublication] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
@@ -419,10 +466,18 @@ export default function PortfolioBuilder({ seed, returnToResume }) {
       <div className={'custom-portfolio-builder-grid' + (fullPreview ? ' full-preview' : '')}>
         {!fullPreview && <aside className="portfolio-builder-form">
           <h1>Build your portfolio</h1>
-          <p>Add the details you want to share. Upload images or paste direct HTTPS links.</p>
-          <p>After submitting, you can send your portfolio details and temporary link to the site owner. Uploaded images are visible on the temporary page.</p>
+          <p>Show your work, experience, and skills on one shareable page.</p>
+          <details className="portfolio-builder-guide">
+            <summary>How it works</summary>
+            <ol className="portfolio-builder-steps">
+              <li>Add your details, projects, and photos. Upload images or paste direct HTTPS links.</li>
+              <li>Review your changes in the live preview, or open the full-page view.</li>
+              <li>Submit to get a temporary link. Anyone with the link can see the details and images you include.</li>
+            </ol>
+          </details>
+          <p className="portfolio-builder-sharing-note">Submitting may share your details and link with the site owner.</p>
           <div className="portfolio-builder-template">
-            <p>{draft.sample ? 'Fictional US developer template. Start blank to publish your own details without the sample label.' : 'Your portfolio draft. Load the fictional example to explore the layout.'}</p>
+            <p>{draft.sample ? 'You’re viewing Taylor Bennett’s fictional portfolio. Edit the sample to try the preview, or start blank to create your own.' : 'Load the fictional example to see how to present your work and experience.'}</p>
             <Popconfirm
               title={draft.sample ? 'Start with a blank portfolio?' : 'Load the fictional example?'}
               description="This will replace the details in your current portfolio draft."
@@ -453,7 +508,37 @@ export default function PortfolioBuilder({ seed, returnToResume }) {
             />
             {draft.photo === samplePortraitKey && <Button size="small" onClick={() => change({ ...draft, photo: '' })}>Remove sample portrait</Button>}
           </fieldset>
-          {profileFields.map(field => (
+          {profileFields.map(field => field[0] === 'educationEntries' ? (
+            <fieldset className="resume-custom-field" key={field[0]}>
+              <legend>Education</legend>
+              {draft.educationEntries.map((entry, index) => (
+                <fieldset className="resume-custom-field" key={entry.id}>
+                  <legend>Education entry {index + 1}</legend>
+                  {[
+                    ['label', 'Label', undefined, '10th, 12th, or Graduation'],
+                    ['details', 'School, qualification, and year', 2],
+                  ].map(([key, label, rows, placeholder]) => (
+                    <EditableField key={key} field={[key, label, rows]} prefix={'portfolio-education-' + entry.id}
+                      value={entry[key]} limits={educationLimits} placeholder={placeholder}
+                      update={(fieldName, value) => change(current => ({
+                        ...current,
+                        educationEntries: current.educationEntries.map(item =>
+                          item.id === entry.id ? { ...item, [fieldName]: value } : item),
+                      }))} />
+                  ))}
+                  <Button type="text" danger aria-label={'Remove education entry ' + (index + 1)}
+                    onClick={() => change(current => ({
+                      ...current,
+                      educationEntries: current.educationEntries.filter(item => item.id !== entry.id),
+                    }))}>Remove entry</Button>
+                </fieldset>
+              ))}
+              <Button type="dashed" block disabled={draft.educationEntries.length >= maxEducationEntries} onClick={() => {
+                const id = nextEducationId.current++;
+                change(current => ({ ...current, educationEntries: [...current.educationEntries, { id, label: '', details: '' }] }));
+              }}>Add education</Button>
+            </fieldset>
+          ) : (
             <EditableField key={field[0]} field={field} prefix="portfolio-profile" value={draft[field[0]]} limits={profileLimits} update={(key, value) => change({ ...draft, [key]: value })} />
           ))}
           <Form.Item label="Theme" htmlFor="portfolio-theme">

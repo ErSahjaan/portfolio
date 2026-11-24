@@ -2573,7 +2573,7 @@ export default function EnhancedPortfolio({ initialResumeDraft, onOpenPortfolioB
           </Tooltip>
         </div>
 
-        {resumeMode === 'published' && <PublishedResume profile={info} close={() => setResumeMode(null)} />}
+        {resumeMode === 'published' && <PublishedResume profile={{ ...info, phone: '+91 9942276253' }} close={() => setResumeMode(null)} />}
         {resumeMode === 'builder' && <ResumeBuilder initialDraft={initialResumeDraft} close={() => {
           setResumeMode(null);
           onCloseResume();

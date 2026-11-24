@@ -7,7 +7,6 @@ const countRequests = "local n=redis.call('INCR',KEYS[1]); if n==1 then redis.ca
 const publish = "local existing=redis.call('GET',KEYS[2]); if existing then return existing end; local profile=redis.call('GET',KEYS[1]); if not profile then return false end; redis.call('SET',KEYS[2],profile,'EX',ARGV[1]); redis.call('DEL',KEYS[1]); return profile";
 const key = (kind, value) => 'portfolio:v1:' + kind + ':' + value;
 const digest = value => createHash('sha256').update(value).digest('hex');
-
 async function redis(...command) {
   const response = await fetch(process.env.UPSTASH_REDIS_REST_URL, {
     method: 'POST',
@@ -38,6 +37,9 @@ function validProfile(data, schema) {
     return bytes.toString('ascii', 0, 4) === 'RIFF' && bytes.toString('ascii', 8, 12) === 'WEBP';
   };
   return stringsFit(data, props) && data.name.trim() && data.role.trim() &&
+    (data.educationEntries === undefined || (Array.isArray(data.educationEntries) &&
+      data.educationEntries.length <= schema.maxEducationEntries &&
+      data.educationEntries.every(entry => entry && stringsFit(entry, schema.educationLimits)))) &&
     (data.linkedin === undefined || (typeof data.linkedin === 'string' && data.linkedin.length <= 300 && https(data.linkedin))) &&
     (!data.slug || schema.slugPattern.test(data.slug)) && (!data.email || schema.emailPattern.test(data.email)) &&
     typeof data.sample === 'boolean' && (https(data.photo) || (data.sample && data.photo === 'sample:portrait')) &&
@@ -57,7 +59,7 @@ async function rateLimited(limits) {
   return false;
 }
 
-async function notifyOwner(profile, url) {
+async function notifyOwner(profile, url, schema) {
   const endpoint = process.env.PORTFOLIO_SUBMISSION_ENDPOINT;
   if (!endpoint) return 'manual';
   if (!/^https:\/\/formsubmit\.co\/ajax\/[a-z0-9@._+-]+$/i.test(endpoint)) return 'unavailable';
@@ -75,7 +77,7 @@ async function notifyOwner(profile, url) {
     availability: profile.availability,
     biography: profile.biography,
     work_experience: profile.experience,
-    education: profile.education,
+    education: schema.educationText(profile),
     skills: profile.skills,
     public_email: profile.email,
     linkedin: profile.linkedin,
@@ -146,8 +148,41 @@ async function handle(req, res, development) {
       const id = randomBytes(24).toString('base64url');
       await storage('SET', key('live', id), JSON.stringify(body.profile), 'EX', temporarySeconds);
       const url = shareUrl(body.profile, id);
-      const notification = await notifyOwner(body.profile, url);
+      const notification = await notifyOwner(body.profile, url, schema);
       return send(200, { id, url, notification, local: Boolean(development) });
+    }
+    if (body.action === 'resume-request') {
+      const { email, phone, request, photo, deliverable = 'resume' } = body;
+      const digits = typeof phone === 'string' ? phone.replace(/\D/g, '') : '';
+      if (!['resume', 'portfolio', 'both'].includes(deliverable) ||
+          typeof email !== 'string' || email.length > 160 || !schema.emailPattern.test(email) ||
+          typeof phone !== 'string' || phone.length > 40 || !/^\+?[\d ().-]+$/.test(phone) || digits.length < 7 || digits.length > 15 ||
+          typeof request !== 'string' || !request.trim() || request.length > 6000 ||
+          typeof photo !== 'string' || photo.length > 500000 || !/^data:image\/jpeg;base64,\/9j\/[A-Za-z0-9+/]+={0,2}$/.test(photo)) {
+        return send(400, { error: 'Enter a valid email and phone number, describe your request, and attach a profile photo.' });
+      }
+      if (!process.env.RESEND_API_KEY || !process.env.PORTFOLIO_EMAIL_FROM) {
+        return send(503, { error: 'Résumé request email delivery is not configured.' });
+      }
+      if (!development && await rateLimited([['resume-request-ip', ip, 5], ['resume-request-site', 'global', 40]])) {
+        return send(429, { error: 'Too many requests. Please try again later.' });
+      }
+      const deliverableLabel = { resume: 'ATS-friendly résumé', portfolio: 'Portfolio link', both: 'ATS-friendly résumé + portfolio link' }[deliverable];
+      const response = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: { Authorization: 'Bearer ' + process.env.RESEND_API_KEY, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          from: process.env.PORTFOLIO_EMAIL_FROM,
+          to: ['quickfixedservicedial@gmail.com'],
+          reply_to: email,
+          subject: deliverableLabel + ' request',
+          text: ['Email: ' + email, 'Phone: ' + phone, '', 'Requested: ' + deliverableLabel, request].join('\n'),
+          attachments: [{ filename: 'profile-photo.jpg', content: photo.split(',')[1] }],
+        }),
+        signal: AbortSignal.timeout(10000),
+      }).catch(() => null);
+      if (!response?.ok) return send(502, { error: 'The request email could not be sent. Try again later.' });
+      return send(200, { sent: true });
     }
     if (development) return send(503, { error: 'Email delivery requires the deployed site. You can still open your localhost preview.' });
     if (body.action === 'email') {

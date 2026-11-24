@@ -4,6 +4,14 @@ export const emailPattern = /^[a-z0-9._+-]+@[a-z0-9.-]+\.[a-z]{2,}$/i;
 export const colorPattern = /^#[\da-f]{6}$/i;
 export const slugPattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 export const tokenPattern = /^[A-Za-z0-9_-]{32}$/;
+export const maxEducationEntries = 10;
+export const educationLimits = { label: 80, details: 500 };
+
+export function educationText(profile) {
+  return [profile.education, ...(profile.educationEntries || []).map(({ label, details }) =>
+    [label, details].filter(Boolean).join('\n')
+  )].filter(Boolean).join('\n\n');
+}
 
 export function uploadedImage(value) {
   return typeof value === 'string' && value.length <= maxImageLength &&
