@@ -323,7 +323,7 @@ function photoBounds(photo, crop) {
 
 function ResumePhoto({ photo, crop }) {
   const { size, x, y } = photoBounds(photo, crop);
-  return <div className="resume-preview-photo"><img src={photo.src} alt="Profile photo" style={{
+  return <div className="resume-preview-photo"><img src={photo.src} alt="Profile portrait" style={{
     width: photo.width / size * 100 + '%',
     left: -x / size * 100 + '%',
     top: -y / size * 100 + '%',
