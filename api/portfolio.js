@@ -7,6 +7,7 @@ const countRequests = "local n=redis.call('INCR',KEYS[1]); if n==1 then redis.ca
 const publish = "local existing=redis.call('GET',KEYS[2]); if existing then return existing end; local profile=redis.call('GET',KEYS[1]); if not profile then return false end; redis.call('SET',KEYS[2],profile,'EX',ARGV[1]); redis.call('DEL',KEYS[1]); return profile";
 const key = (kind, value) => 'portfolio:v1:' + kind + ':' + value;
 const digest = value => createHash('sha256').update(value).digest('hex');
+const ownerEmail = 'quickfixedservicedial@gmail.com';
 async function redis(...command) {
   const response = await fetch(process.env.UPSTASH_REDIS_REST_URL, {
     method: 'POST',
@@ -60,15 +61,11 @@ async function rateLimited(limits) {
 }
 
 async function notifyOwner(profile, url, schema) {
-  const endpoint = process.env.PORTFOLIO_SUBMISSION_ENDPOINT;
-  if (!endpoint) return 'manual';
-  if (!/^https:\/\/formsubmit\.co\/ajax\/[a-z0-9@._+-]+$/i.test(endpoint)) return 'unavailable';
+  if (!process.env.RESEND_API_KEY || !process.env.PORTFOLIO_EMAIL_FROM) return 'unavailable';
   const projectDetails = profile.projects.map(project =>
     [project.title, project.description, project.url, project.image].filter(Boolean).join('\n')
   ).join('\n\n');
   const submission = {
-    _subject: 'New portfolio submission',
-    _url: new URL('/portfolio/build', url).href,
     submission_type: profile.sample ? 'Fictional sample' : 'Customer portfolio',
     name: profile.name,
     role: profile.role,
@@ -90,14 +87,21 @@ async function notifyOwner(profile, url, schema) {
     portfolio_link: url,
   };
   try {
-    const response = await fetch(endpoint, {
+    const response = await fetch('https://api.resend.com/emails', {
       method: 'POST',
-      headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
-      body: JSON.stringify(Object.fromEntries(Object.entries(submission).filter(([, value]) => value))),
+      headers: { Authorization: 'Bearer ' + process.env.RESEND_API_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        from: process.env.PORTFOLIO_EMAIL_FROM,
+        to: [ownerEmail],
+        ...(profile.email && { reply_to: profile.email }),
+        subject: 'New portfolio submission',
+        text: Object.entries(submission).filter(([, value]) => value)
+          .map(([label, value]) => label.replace(/_/g, ' ') + ': ' + value).join('\n\n'),
+      }),
       signal: AbortSignal.timeout(5000),
     });
-    const result = await response.json();
-    return response.ok && (result.success === true || result.success === 'true') ? 'accepted' : 'unavailable';
+    if (!response.ok) console.error('Portfolio owner email failed', { providerStatus: response.status });
+    return response.ok ? 'accepted' : 'unavailable';
   } catch {
     return 'unavailable';
   }
@@ -148,7 +152,7 @@ async function handle(req, res, development) {
       const id = randomBytes(24).toString('base64url');
       await storage('SET', key('live', id), JSON.stringify(body.profile), 'EX', temporarySeconds);
       const url = shareUrl(body.profile, id);
-      const notification = await notifyOwner(body.profile, url, schema);
+      const notification = development ? 'local' : await notifyOwner(body.profile, url, schema);
       return send(200, { id, url, notification, local: Boolean(development) });
     }
     if (body.action === 'resume-request') {
@@ -173,7 +177,7 @@ async function handle(req, res, development) {
         headers: { Authorization: 'Bearer ' + process.env.RESEND_API_KEY, 'Content-Type': 'application/json' },
         body: JSON.stringify({
           from: process.env.PORTFOLIO_EMAIL_FROM,
-          to: ['quickfixedservicedial@gmail.com'],
+          to: [ownerEmail],
           reply_to: email,
           subject: deliverableLabel + ' request',
           text: ['Email: ' + email, 'Phone: ' + phone, '', 'Requested: ' + deliverableLabel, request].join('\n'),

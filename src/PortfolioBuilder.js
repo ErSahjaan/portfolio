@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Button, Form, Input, Modal, Popconfirm, Select, Space } from 'antd';
 import { Link, useLocation } from 'react-router-dom';
 import samplePortrait from './assets/images/taylor-bennett-sample.png';
-import { educationLimits, educationText, emailPattern, imageAccept, maxEducationEntries, maxImageLength, portfolioColor, publicAddress, slugPattern, tokenPattern, uploadedImage } from './portfolioPublishing.mjs';
+import { educationLimits, emailPattern, imageAccept, maxEducationEntries, maxImageLength, portfolioColor, publicAddress, slugPattern, tokenPattern, uploadedImage } from './portfolioPublishing.mjs';
 import './PortfolioBuilder.css';
 
 const themes = [
@@ -315,28 +315,12 @@ async function publishingRequest(payload) {
   return result;
 }
 
-function PublishedLinkModal({ publication, profile, close }) {
+function PublishedLinkModal({ publication, close }) {
   const [email, setEmail] = useState('');
   const [sending, setSending] = useState(false);
   const [status, setStatus] = useState('');
   const [error, setError] = useState('');
   const input = useRef(null);
-  const ownerForm = new URL('https://formsubmit.co/el/xekeri');
-  ownerForm.searchParams.set('subject', 'New portfolio submission');
-  ownerForm.searchParams.set('name', profile.name);
-  if (emailPattern.test(profile.email)) ownerForm.searchParams.set('email', profile.email);
-  const submittedDetails = [
-    ['Portfolio', publication.url], ['Name', profile.name], ['Role', profile.role],
-    ['Location', profile.location], ['Headline', profile.headline], ['Availability', profile.availability],
-    ['Email', profile.email], ['LinkedIn', profile.linkedin], ['Website', profile.website],
-    ['About', profile.biography], ['Experience', profile.experience], ['Education', educationText(profile)],
-    ['Skills', profile.skills],
-    ['Projects', profile.projects.map(project => [project.title, project.description, project.url, project.image].filter(Boolean).join(' | ')).join('\n')],
-  ].filter(([, value]) => value).map(([label, value]) => label + ': ' + value).join('\n\n');
-  const shortDetails = Array.from(submittedDetails).slice(0, 1600).join('');
-  ownerForm.searchParams.set('message', shortDetails);
-  const detailsTruncated = shortDetails !== submittedDetails;
-
   async function sendEmail() {
     setSending(true);
     setError('');
@@ -373,23 +357,8 @@ function PublishedLinkModal({ publication, profile, close }) {
       <Form.Item label="Temporary portfolio link" htmlFor="temporary-portfolio-link">
         <Input id="temporary-portfolio-link" readOnly ref={input} value={publication.url} onFocus={event => event.target.select()} />
       </Form.Item>
-      {publication.notification === 'accepted' && <p role="status">FormSubmit accepted the owner notification. First-time delivery requires inbox activation.</p>}
-      {publication.notification !== 'accepted' && (
-        <div>
-          <p>Open the prefilled email form and select Send to deliver your details to the site owner.</p>
-          <Space wrap>
-            <Button href={ownerForm.href} target="_blank" rel="noreferrer">Send details to owner</Button>
-            {detailsTruncated && <Button onClick={async () => {
-              try {
-                await navigator.clipboard.writeText(submittedDetails);
-                setStatus('Full details copied. Paste them into the email form.');
-              } catch {
-                setStatus('Copy is unavailable. The prefilled message includes your portfolio link.');
-              }
-            }}>Copy full details</Button>}
-          </Space>
-        </div>
-      )}
+      {publication.notification === 'accepted' && <p role="status">Your submission was sent to the site owner.</p>}
+      {publication.notification === 'unavailable' && <p role="status">Your link is ready, but we couldn’t email your submission to the site owner.</p>}
       {!publication.local && <><Form.Item label="Email address (optional)" htmlFor="portfolio-delivery-email" extra="Send a copy of the same link to your inbox.">
         <Input id="portfolio-delivery-email" type="email" autoComplete="email" maxLength={160} value={email} onChange={event => setEmail(event.target.value)} />
       </Form.Item>
@@ -441,7 +410,7 @@ export default function PortfolioBuilder({ seed, returnToResume }) {
         /^(localhost|127\.0\.0\.1|\[::1\])$/i.test(window.location.hostname) &&
         typeof response.url === 'string' && response.url.startsWith(window.location.origin + '/portfolio/custom/');
       if (!tokenPattern.test(response.id) || (!localUrl && !webLink(response.url))) throw new Error('The temporary link could not be created.');
-      setPublication({ ...response, profile: preview });
+      setPublication(response);
     } catch (failure) {
       setError(failure.message);
     } finally {
@@ -462,7 +431,7 @@ export default function PortfolioBuilder({ seed, returnToResume }) {
         </Space>
       </header>
       {error && <p className="portfolio-builder-error" role="alert">{error}</p>}
-      {publication && <PublishedLinkModal publication={publication} profile={publication.profile} close={() => setPublication(null)} />}
+      {publication && <PublishedLinkModal publication={publication} close={() => setPublication(null)} />}
       <div className={'custom-portfolio-builder-grid' + (fullPreview ? ' full-preview' : '')}>
         {!fullPreview && <aside className="portfolio-builder-form">
           <h1>Build your portfolio</h1>
@@ -475,7 +444,7 @@ export default function PortfolioBuilder({ seed, returnToResume }) {
               <li>Submit to get a temporary link. Anyone with the link can see the details and images you include.</li>
             </ol>
           </details>
-          <p className="portfolio-builder-sharing-note">Submitting may share your details and link with the site owner.</p>
+          <p className="portfolio-builder-sharing-note">Submitting emails your portfolio details and temporary link to the site owner on the published site.</p>
           <div className="portfolio-builder-template">
             <p>{draft.sample ? 'You’re viewing Taylor Bennett’s fictional portfolio. Edit the sample to try the preview, or start blank to create your own.' : 'Load the fictional example to see how to present your work and experience.'}</p>
             <Popconfirm
