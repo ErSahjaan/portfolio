@@ -614,6 +614,21 @@
 @media (max-width: 720px) {
   .custom-portfolio-builder-grid { grid-template-columns: minmax(0, 1fr); }
   .portfolio-builder-form { border-inline-end: 0; border-bottom: 1px solid #e2e8f0; }
+  .portfolio-builder-form .ant-input { font-size: 16px; }
+  .portfolio-builder-header > .ant-space { min-width: 0; }
+  .portfolio-builder-header .ant-btn { min-height: 44px; }
+  .custom-portfolio-nav nav button { min-height: 44px; padding-inline: 3px; }
+}
+
+@media (max-width: 425px) {
+  .portfolio-builder-header > .ant-space {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    width: 100%;
+  }
+  .portfolio-builder-header .ant-btn { width: 100%; padding-inline: 8px; }
+  .custom-portfolio-nav nav { column-gap: 10px; }
+  .custom-portfolio-nav nav button { font-size: .83rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {

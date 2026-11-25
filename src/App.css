@@ -55,6 +55,23 @@
 .resume-builder-fields .ant-form-item { margin-bottom: 14px; }
 .resume-builder-fields .ant-form-item .ant-form-item-label { padding-bottom: 4px; }
 .resume-builder-fields input[type="file"] { max-width: 100%; }
+.resume-mobile-switch { display: none; }
+
+@media (max-width: 900px) {
+  .resume-mobile-switch {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    padding-block: 6px 10px;
+    background: #fff;
+  }
+  .resume-mobile-switch .ant-btn { min-height: 44px; padding-inline: 6px; }
+  .resume-builder-grid[data-mobile-pane="edit"] .resume-builder-document,
+  .resume-builder-grid[data-mobile-pane="preview"] .resume-builder-fields { display: none; }
+}
 
 @media (min-width: 901px) {
   .resume-builder-dialog .ant-modal-content { height: calc(100dvh - 32px); }
@@ -356,6 +373,14 @@
     max-height: calc(100dvh - 16px);
     padding-bottom: max(14px, env(safe-area-inset-bottom));
   }
+
+  .resume-builder-dialog .ant-modal-content { padding-inline: 14px; }
+  .resume-builder-dialog .resume-builder-toolbar { justify-content: flex-start; gap: 8px; }
+  .resume-builder-dialog .resume-builder-toolbar > div:first-child { flex-basis: 100%; }
+  .resume-template-dialog .ant-modal-content { padding-inline: 14px; }
+  .resume-template-dialog .resume-template-grid { gap: 8px; }
+  .resume-template-dialog .resume-template-option { min-width: 0; padding: 7px; }
+  .resume-writing-dialog .ant-input { font-size: 16px; }
 
   .resume-editor-dialog .ant-modal-footer {
     padding-top: 9px;
@@ -690,6 +715,13 @@
 }
 
 @media (max-width: 400px) {
+  .portfolio-header-inner { gap: 8px; }
+  .portfolio-brand { gap: 8px; }
+  .portfolio-footer .ant-space { max-width: 100%; }
+  .portfolio-footer .ant-space-item { min-width: 0; }
+  .resume-builder-dialog .ant-modal-content { padding-inline: 12px; }
+  .resume-builder-actions .ant-btn { padding-inline: 8px; }
+
   .portfolio-hero-actions,
   .portfolio-contact-actions {
     display: flex !important;

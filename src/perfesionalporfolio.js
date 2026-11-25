@@ -1428,7 +1428,7 @@ export default function EnhancedPortfolio({ initialResumeDraft, onOpenPortfolioB
                       </Card>
                     </Col>
                     
-                    <Col xs={12}>
+                    <Col xs={24} sm={12}>
                       <Card
                         className={`card-hover glass-card ${isVisible.about ? 'visible' : ''}`}
                         style={{
@@ -1457,7 +1457,7 @@ export default function EnhancedPortfolio({ initialResumeDraft, onOpenPortfolioB
                       </Card>
                     </Col>
                     
-                    <Col xs={12}>
+                    <Col xs={24} sm={12}>
                       <Card
                         className={`card-hover glass-card ${isVisible.about ? 'visible' : ''}`}
                         style={{

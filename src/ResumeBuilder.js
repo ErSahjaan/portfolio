@@ -391,6 +391,7 @@ export default function ResumeBuilder({ initialDraft, close, openPortfolioBuilde
   const [template, setTemplate] = useState(() => resumeTemplates.find(option => option.id === initialDraft?.templateId) || resumeTemplates[0]);
   const [pendingTemplate, setPendingTemplate] = useState(null);
   const [writingAssistantOpen, setWritingAssistantOpen] = useState(false);
+  const [mobilePane, setMobilePane] = useState('edit');
   const [useTemplateSample, setUseTemplateSample] = useState(false);
   const [sampleTemplateId, setSampleTemplateId] = useState(initialDraft?.sampleTemplateId || 'classic');
   const [resume, setResume] = useState(() => ({ ...blankResume(), ...(initialDraft?.resume ?? templateSample(sampleTemplateId)) }));
@@ -577,7 +578,16 @@ export default function ResumeBuilder({ initialDraft, close, openPortfolioBuilde
           </Button>
         </Popconfirm>
       </div>
-      <div className="resume-builder-grid">
+      <div className="resume-mobile-switch" role="group" aria-label="Résumé view">
+        {[['edit', 'Edit résumé'], ['preview', 'Live preview']].map(([pane, label]) => (
+          <Button key={pane} type={mobilePane === pane ? 'primary' : 'default'} aria-pressed={mobilePane === pane}
+            onClick={event => {
+              setMobilePane(pane);
+              event.currentTarget.closest('.ant-modal-body')?.scrollTo(0, 0);
+            }}>{label}</Button>
+        ))}
+      </div>
+      <div className="resume-builder-grid" data-mobile-pane={mobilePane}>
         <Form className="resume-builder-fields" layout="vertical" component="div">
           <Form.Item label="Profile photo (optional)" htmlFor="resume-photo" extra="Sample portraits are for preview. Upload your own photo to include it in the PDF.">
             <input id="resume-photo" type="file" accept="image/jpeg,image/png,image/webp" disabled={photoLoading} onChange={uploadPhoto} />
