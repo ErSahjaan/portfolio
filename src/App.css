@@ -378,8 +378,13 @@
   .resume-builder-dialog .resume-builder-toolbar { justify-content: flex-start; gap: 8px; }
   .resume-builder-dialog .resume-builder-toolbar > div:first-child { flex-basis: 100%; }
   .resume-template-dialog .ant-modal-content { padding-inline: 14px; }
-  .resume-template-dialog .resume-template-grid { gap: 8px; }
-  .resume-template-dialog .resume-template-option { min-width: 0; padding: 7px; }
+  .resume-template-dialog .resume-template-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+  }
+  .resume-template-dialog .resume-template-option { min-width: 0; padding: 10px; }
+  .resume-template-dialog .resume-template-description { min-height: 0; }
+  .resume-template-dialog .ant-modal-footer .ant-btn { width: 100%; min-height: 44px; }
   .resume-writing-dialog .ant-input { font-size: 16px; }
 
   .resume-editor-dialog .ant-modal-footer {
