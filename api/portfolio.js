@@ -8,6 +8,11 @@ const publish = "local existing=redis.call('GET',KEYS[2]); if existing then retu
 const key = (kind, value) => 'portfolio:v1:' + kind + ':' + value;
 const digest = value => createHash('sha256').update(value).digest('hex');
 const ownerEmail = 'quickfixedservicedial@gmail.com';
+
+function canEmailVisitors() {
+  const sender = process.env.PORTFOLIO_EMAIL_FROM;
+  return Boolean(process.env.RESEND_API_KEY && sender && !/@resend\.dev\b/i.test(sender));
+}
 async function redis(...command) {
   const response = await fetch(process.env.UPSTASH_REDIS_REST_URL, {
     method: 'POST',
@@ -153,7 +158,7 @@ async function handle(req, res, development) {
       await storage('SET', key('live', id), JSON.stringify(body.profile), 'EX', temporarySeconds);
       const url = shareUrl(body.profile, id);
       const notification = development ? 'local' : await notifyOwner(body.profile, url, schema);
-      return send(200, { id, url, notification, local: Boolean(development) });
+      return send(200, { id, url, notification, local: Boolean(development), canEmailVisitors: !development && canEmailVisitors() });
     }
     if (body.action === 'resume-request') {
       const { email, phone, request, photo, deliverable = 'resume' } = body;
@@ -200,8 +205,8 @@ async function handle(req, res, development) {
           typeof body.email !== 'string' || body.email.length > 160 || !schema.emailPattern.test(body.email)) {
         return send(400, { error: 'Enter an email address that can receive the link.' });
       }
-      if (!process.env.RESEND_API_KEY || !process.env.PORTFOLIO_EMAIL_FROM) {
-        return send(503, { error: 'Email delivery is unavailable. You can still copy your portfolio link.' });
+      if (!canEmailVisitors()) {
+        return send(503, { error: 'Email copies are unavailable. You can still copy your portfolio link.' });
       }
       const record = await redis('GET', key('live', body.id));
       if (!record) return send(410, { error: 'This portfolio link has expired. Submit again for a new link.' });

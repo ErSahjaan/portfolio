@@ -359,7 +359,7 @@ function PublishedLinkModal({ publication, close }) {
       </Form.Item>
       {publication.notification === 'accepted' && <p role="status">Your submission was sent to the site owner.</p>}
       {publication.notification === 'unavailable' && <p role="status">Your link is ready, but we couldn’t email your submission to the site owner.</p>}
-      {!publication.local && <><Form.Item label="Email address (optional)" htmlFor="portfolio-delivery-email" extra="Send a copy of the same link to your inbox.">
+      {publication.canEmailVisitors && <><Form.Item label="Email address (optional)" htmlFor="portfolio-delivery-email" extra="Send a copy of the same link to your inbox.">
         <Input id="portfolio-delivery-email" type="email" autoComplete="email" maxLength={160} value={email} onChange={event => setEmail(event.target.value)} />
       </Form.Item>
       <Button loading={sending} disabled={!email.trim()} onClick={sendEmail}>Email me the link</Button>
