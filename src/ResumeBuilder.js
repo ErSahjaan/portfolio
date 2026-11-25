@@ -296,7 +296,10 @@ function ResumeWritingAssistant({ photo, photoLoading, photoError, uploadPhoto, 
             <Form.Item label="Profile photo" required htmlFor="resume-writing-photo" extra="JPEG, PNG, or WebP, up to 8 MB.">
               <input id="resume-writing-photo" type="file" accept="image/jpeg,image/png,image/webp" disabled={photoLoading || sending}
                 onChange={event => uploadPhoto(event, setSelectedPhoto)} />
-              {selectedPhoto && <p role="status">Photo ready to send.</p>}
+              {selectedPhoto && <figure className="resume-request-photo">
+                <img src={selectedPhoto.src} alt="Selected profile portrait" />
+                <figcaption role="status">Photo ready to send</figcaption>
+              </figure>}
               {photoError && <p className="resume-builder-error" role="alert">{photoError}</p>}
             </Form.Item>
           </section>

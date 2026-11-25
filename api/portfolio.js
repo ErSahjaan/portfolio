@@ -181,7 +181,13 @@ async function handle(req, res, development) {
         }),
         signal: AbortSignal.timeout(10000),
       }).catch(() => null);
-      if (!response?.ok) return send(502, { error: 'The request email could not be sent. Try again later.' });
+      if (!response?.ok) {
+        console.error('Portfolio résumé request delivery failed', {
+          providerStatus: response?.status ?? null,
+          testSender: /@resend\.dev\b/i.test(process.env.PORTFOLIO_EMAIL_FROM),
+        });
+        return send(502, { error: 'The request email could not be sent. Try again later.' });
+      }
       return send(200, { sent: true });
     }
     if (development) return send(503, { error: 'Email delivery requires the deployed site. You can still open your localhost preview.' });
