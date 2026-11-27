@@ -32,7 +32,7 @@ const sampleProfile = {
     '• Wrote integration tests for access rules, invalid requests, and job completion. Reviewed pull requests and helped verify release fixes.',
   ].join('\n'),
   educationEntries: [{ label: 'Bachelor of Science in Computer Science', details: 'Example State University (Fictional) | Austin, TX | May 2023\nCoursework included databases, software engineering, and data structures.' }],
-  skills: 'Java, Spring Boot, React, TypeScript, PostgreSQL, REST APIs, JUnit, React Testing Library, Git, GitHub Actions',
+  skills: 'Java, Spring Boot, React, TypeScript, PostgreSQL, REST APIs, JUnit, React Testing Library, Git',
   email: 'taylor.bennett@example.com',
   photo: samplePortraitKey,
   projects: [

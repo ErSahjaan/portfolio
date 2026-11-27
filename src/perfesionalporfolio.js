@@ -9,7 +9,6 @@ import {
   MailOutlined,
   PhoneOutlined,
   LinkedinOutlined,
-  GithubOutlined,
   CodeOutlined,
   RocketOutlined,
   CheckCircleOutlined,
@@ -1198,7 +1197,6 @@ export default function EnhancedPortfolio({ initialResumeDraft, onOpenPortfolioB
                     {/* Enhanced Social Icons */}
                     <Space size={12} style={{ animation: 'fadeInLeft 0.8s ease 0.6s forwards', opacity: 0 }}>
                       {[
-                        { icon: <GithubOutlined />, label: 'GitHub', onClick: () => window.open('https://github.com/ErSahjaan', '_blank') },
                         { icon: <LinkedinOutlined />, label: 'LinkedIn', onClick: () => window.open('https://www.linkedin.com/in/er-md-sahjaan-4a33b1247?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app', '_blank') },
                         { icon: <MailOutlined />, label: 'Email', onClick: () => window.location.href = 'mailto:sahjan11957@gmail.com' },
                         { icon: <GlobalOutlined />, label: 'Website', onClick: () => window.open(info.website, '_blank') }
@@ -2187,7 +2185,6 @@ export default function EnhancedPortfolio({ initialResumeDraft, onOpenPortfolioB
               
               <div style={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap', gap: '12px' }}>
                 {[
-                  { icon: <GithubOutlined />, label: 'GitHub', onClick: () => window.open('https://github.com/ErSahjaan', '_blank') },
                   { icon: <LinkedinOutlined />, label: 'LinkedIn', onClick: () => window.open('https://www.linkedin.com/in/er-md-sahjaan-4a33b1247', '_blank') },
                   { icon: <MailOutlined />, label: 'Email', onClick: () => window.location.href = 'mailto:sahjan11957@gmail.com' },
                   { icon: <PhoneOutlined />, label: 'Phone', onClick: () => window.location.href = `tel:${info.phone}` }

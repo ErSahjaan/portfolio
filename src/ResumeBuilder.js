@@ -35,7 +35,7 @@ function publishedResume(profile) {
     name: profile.name,
     role: profile.role,
     contact: [profile.location, profile.phone, profile.email].filter(Boolean).join(' | '),
-    links: ['https://github.com/ErSahjaan', 'https://www.linkedin.com/in/er-md-sahjaan-4a33b1247', profile.website].join('\n'),
+    links: ['https://www.linkedin.com/in/er-md-sahjaan-4a33b1247', profile.website].join('\n'),
     summary: profileSummary,
     skills: [...coreSkills, ...additionalSkills].join(', '),
     experience: [
@@ -156,7 +156,7 @@ const sampleResume = {
     'Languages: Java, JavaScript, TypeScript, SQL, HTML, CSS',
     'Backend: Spring Boot, Spring Data JPA, REST APIs, PostgreSQL',
     'Frontend: React, React Router, form validation, responsive design',
-    'Testing and delivery: JUnit 5, Mockito, React Testing Library, Maven, Git, GitHub Actions, Docker',
+    'Testing and delivery: JUnit 5, Mockito, React Testing Library, Maven, Git, Docker',
   ].join('\n'),
   experience: [
     'Software Developer | Blue Mesa Tools (Fictional) | Austin, TX | August 2023 - Present',
@@ -164,7 +164,7 @@ const sampleResume = {
     '- Developed React dashboards and accessible forms with validation, loading, empty, and error states so operators could track requests and recover from failed actions.',
     '- Added PostgreSQL migrations, indexes, and paginated queries for request and inventory search.',
     '- Wrote JUnit integration tests for status transitions, invalid inputs, and role-based access. Added React Testing Library coverage for key form interactions.',
-    '- Reviewed pull requests, maintained build checks in GitHub Actions, and helped reproduce and verify fixes for release defects.',
+    '- Reviewed pull requests, maintained build checks, and helped reproduce and verify fixes for release defects.',
   ].join('\n'),
   projects: [
     'Service Request Dashboard | React, TypeScript, Spring Boot, PostgreSQL',
@@ -233,7 +233,7 @@ const galleryCandidates = {
       name: 'Leo Morales', role: 'Frontend Developer',
       contact: 'Denver, CO | leo.morales@example.com',
       summary: 'Frontend developer building responsive React applications for customer portals. Works with designers and API engineers to ship reusable interfaces, accessible forms, and reliable loading and error states.',
-      skills: 'Frontend: React, TypeScript, HTML, CSS, responsive layouts\nQuality: Playwright, React Testing Library, accessibility checks\nTools: Storybook, Git, GitHub Actions',
+      skills: 'Frontend: React, TypeScript, HTML, CSS, responsive layouts\nQuality: Playwright, React Testing Library, accessibility checks\nTools: Storybook, Git',
       experience: 'Frontend Developer | Mesa Pixel (Fictional) | 2023 - Present\n- Built form components and tested keyboard navigation across key flows.',
       projects: 'Component Library\n- Built reusable inputs, alerts, and dialogs with keyboard and focus support.\n- Documented error, loading, and empty states in Storybook.\n\nCustomer Settings Portal\n- Connected React forms to account APIs and added tests for validation and failed saves.',
       education: 'B.S. in Computer Science | Example Tech University | 2023',
