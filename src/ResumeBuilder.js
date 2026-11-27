@@ -286,14 +286,14 @@ function ResumeWritingAssistant({ photo, photoLoading, photoError, uploadPhoto, 
       </section> : <Form layout="vertical" disabled={sending} onFinish={send}>
         <div className="resume-writing-grid">
           <section className="resume-writing-panel" aria-labelledby="resume-writing-contact-heading">
-            <h2 id="resume-writing-contact-heading">Contact and photo</h2>
+            <h2 id="resume-writing-contact-heading">Profile Contact Info</h2>
             <Form.Item name="email" label="Email" rules={[{ required: true, type: 'email', message: 'Enter a valid email address.' }]}>
               <Input type="email" autoComplete="email" maxLength={160} placeholder="name@example.com" />
             </Form.Item>
             <Form.Item name="phone" label="Phone" rules={[{ required: true, whitespace: true, message: 'Enter your phone number.' }]}>
               <Input type="tel" autoComplete="tel" maxLength={40} placeholder="+1 (555) 123-4567" />
             </Form.Item>
-            <Form.Item label="Profile photo" required htmlFor="resume-writing-photo" extra="JPEG, PNG, or WebP, up to 8 MB.">
+            <Form.Item label="Profile Photo" required htmlFor="resume-writing-photo" extra="JPEG, PNG, or WebP, up to 8 MB.">
               <input id="resume-writing-photo" type="file" accept="image/jpeg,image/png,image/webp" disabled={photoLoading || sending}
                 onChange={event => uploadPhoto(event, setSelectedPhoto)} />
               {selectedPhoto && <figure className="resume-request-photo">
